@@ -10,12 +10,10 @@ import {
   notes,
   users,
 } from "../../../../drizzle/schema";
-import { TrackerHeader } from "@/components/tracker/tracker-header";
-import type { MemberInfo } from "@/components/tracker/task-row";
-import type { MemberOption } from "@/components/tracker/editable-owner";
-import type { NoteData } from "@/components/tracker/note-thread";
-import { AddSectionForm } from "@/components/tracker/add-section-form";
-import { ProjectToolbar, type FlatTaskData } from "@/components/tracker/project-toolbar";
+import "@/app/tracker.css";
+import { TrackerApp } from "@/components/tracker/tracker-app";
+import type { MemberInfo, FlatTask } from "@/components/tracker/tracker-app";
+import type { NoteData } from "@/components/tracker/note-block";
 import { MembersButton } from "@/components/members/members-button";
 import type { MemberRow } from "@/components/members/members-panel";
 
@@ -96,8 +94,8 @@ export default async function ProjectPage({
     .leftJoin(users, eq(users.id, projectMembers.userId))
     .where(eq(projectMembers.projectId, projectId));
 
-  const memberMap = new Map<string, MemberInfo>();
-  const memberOptions: MemberOption[] = [];
+  const memberMap = new Map<string, { name: string; color: string }>();
+  const memberOptions: { id: string; name: string; color: string }[] = [];
   const memberRows: MemberRow[] = [];
   for (const member of members) {
     const displayName = member.name ?? member.email.split("@")[0];
@@ -139,7 +137,7 @@ export default async function ProjectPage({
     notesByTask.set(note.taskId, existing);
   }
 
-  const allTasks: FlatTaskData[] = projectTasks.map((task) => ({
+  const allTasks: FlatTask[] = projectTasks.map((task) => ({
     id: task.id,
     title: task.title,
     status: task.status,
@@ -151,49 +149,32 @@ export default async function ProjectPage({
 
   const notesByTaskObj: Record<string, NoteData[]> = Object.fromEntries(notesByTask);
 
-  const dateString = new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date());
+  const memberInfos: MemberInfo[] = memberOptions.map((m) => ({ id: m.id, name: m.name, color: m.color }));
 
   return (
-    <div className="min-h-screen">
-      <div className="h-[5px] bg-navy" />
-
-      <div className="mx-auto max-w-[1000px] px-7">
-        <TrackerHeader
-          subtitle={project.subtitle}
-          title={project.title}
-          date={dateString}
-        />
-
-        <div className="flex justify-end gap-2 py-2">
-          <MembersButton
-            projectId={projectId}
-            members={memberRows}
-            isOwner={isOwner}
-          />
-        </div>
-
-        <ProjectToolbar
+    <>
+      <div className="flex justify-end gap-2 px-7 py-2">
+        <MembersButton
           projectId={projectId}
-          sections={projectSections.map((section) => ({
-            id: section.id,
-            title: section.title,
-            sortOrder: section.sortOrder,
-          }))}
-          tasks={allTasks}
-          notesByTask={notesByTaskObj}
-          members={memberOptions}
+          members={memberRows}
+          isOwner={isOwner}
         />
-
-        <AddSectionForm projectId={projectId} />
-
-        <footer className="border-t border-line py-6 font-mono text-xs text-muted">
-          Project Tracker
-        </footer>
       </div>
-    </div>
+
+      <TrackerApp
+        projectId={projectId}
+        subtitle={project.subtitle}
+        title={project.title}
+        sections={projectSections.map((section) => ({
+          id: section.id,
+          title: section.title,
+          sortOrder: section.sortOrder,
+        }))}
+        tasks={allTasks}
+        notesByTask={notesByTaskObj}
+        members={memberInfos}
+        isOwner={isOwner}
+      />
+    </>
   );
 }
