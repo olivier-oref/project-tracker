@@ -44,6 +44,18 @@ export function MembersPanel({
     });
   }
 
+  function handleRename(memberId: string, name: string) {
+    if (!name.trim()) return;
+    startTransition(async () => {
+      await fetch(`/api/projects/${projectId}/members`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ memberId, name: name.trim() }),
+      });
+      router.refresh();
+    });
+  }
+
   return (
     <>
       {open ? (
@@ -72,7 +84,7 @@ export function MembersPanel({
         <div className="flex flex-col gap-3 overflow-y-auto p-4">
           {members.map((member) => {
             const isPendingInvite = !member.joinedAt;
-            const displayName = member.user?.name ?? member.email;
+            const displayName = member.user?.name ?? member.email.split("@")[0];
             const canRemove = isOwner && member.role !== "owner";
 
             return (
@@ -86,9 +98,19 @@ export function MembersPanel({
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="truncate font-sans text-sm text-ink">
-                      {isPendingInvite ? member.email : displayName}
-                    </span>
+                    <input
+                      className="truncate border-0 border-b border-transparent bg-transparent font-sans text-sm text-ink outline-none hover:border-line-2 focus:border-gold"
+                      defaultValue={displayName}
+                      placeholder="Enter name"
+                      style={{ width: "100%", padding: "2px 0" }}
+                      onBlur={(e) => handleRename(member.id, e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          e.currentTarget.blur();
+                        }
+                      }}
+                    />
                     {member.role === "owner" ? (
                       <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide text-navy">
                         Owner
@@ -100,11 +122,9 @@ export function MembersPanel({
                       </span>
                     ) : null}
                   </div>
-                  {!isPendingInvite ? (
-                    <p className="truncate font-mono text-xs text-muted">
-                      {member.email}
-                    </p>
-                  ) : null}
+                  <p className="truncate font-mono text-xs text-muted">
+                    {member.email}
+                  </p>
                 </div>
                 {canRemove ? (
                   <button

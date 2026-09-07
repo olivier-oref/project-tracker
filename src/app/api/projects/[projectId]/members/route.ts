@@ -106,6 +106,39 @@ export async function POST(
   return NextResponse.json(member);
 }
 
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ projectId: string }> }
+) {
+  const { projectId } = await params;
+  const auth = await verifyProjectMembership(projectId);
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  const body = await request.json();
+  const memberId = typeof body.memberId === "string" ? body.memberId : "";
+  const name = typeof body.name === "string" ? body.name.trim() : "";
+
+  if (!memberId || !name) {
+    return NextResponse.json({ error: "memberId and name are required" }, { status: 400 });
+  }
+
+  const [target] = await db
+    .select()
+    .from(projectMembers)
+    .where(
+      and(eq(projectMembers.id, memberId), eq(projectMembers.projectId, projectId))
+    );
+
+  if (!target || !target.userId) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  await db.update(users).set({ name }).where(eq(users.id, target.userId));
+  return NextResponse.json({ success: true });
+}
+
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ projectId: string }> }

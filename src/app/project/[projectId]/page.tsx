@@ -71,7 +71,8 @@ export default async function ProjectPage({
           content: notes.content,
           createdAt: notes.createdAt,
           authorId: notes.authorId,
-          authorName: users.name,
+          authorNameOverride: notes.authorName,
+          authorNameFromUser: users.name,
         })
         .from(notes)
         .leftJoin(users, eq(users.id, notes.authorId))
@@ -129,7 +130,7 @@ export default async function ProjectPage({
       id: note.id,
       content: note.content,
       createdAt: (note.createdAt ?? new Date()).toISOString(),
-      authorName: note.authorName,
+      authorName: note.authorNameOverride ?? note.authorNameFromUser ?? null,
       authorColor,
     };
     const existing = notesByTask.get(note.taskId) ?? [];

@@ -89,5 +89,6 @@ export const notes = pgTable("notes", {
     .references(() => tasks.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
   authorId: uuid("author_id").references(() => users.id),
+  authorName: text("author_name"),
   createdAt: timestamp("created_at", { withTimezone: true }).default(sql`now()`),
 });

@@ -32,6 +32,8 @@ export async function PATCH(
   const body = await request.json();
   const updates: Record<string, unknown> = {};
   if (typeof body.content === "string") updates.content = body.content;
+  if ("authorId" in body) updates.authorId = body.authorId;
+  if ("authorName" in body) updates.authorName = body.authorName;
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
