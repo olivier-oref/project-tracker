@@ -56,7 +56,7 @@ export function EditableSectionTitle({
   return (
     <h2
       onClick={() => setEditing(true)}
-      className="cursor-text font-serif text-xl text-navy"
+      className="flex-1 cursor-text font-serif text-[20px] font-semibold text-navy"
       style={{ opacity: isPending ? 0.5 : 1 }}
     >
       {title}

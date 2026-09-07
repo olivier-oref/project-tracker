@@ -18,18 +18,25 @@ export function SummaryStrip({ metrics }: { metrics: SummaryMetrics }) {
   ];
 
   return (
-    <div className="flex flex-wrap border-t border-line py-6">
+    <div className="flex flex-wrap border-t border-line" style={{ margin: "22px 0 10px" }}>
       {items.map((item, index) => (
         <div
           key={item.label}
-          className={`min-w-[120px] flex-1 px-4 py-2 ${
-            index > 0 ? "border-l border-line" : ""
-          }`}
+          className="flex-1 basis-[120px]"
+          style={{
+            padding: "12px 14px 12px 0",
+            borderRight: index < items.length - 1 ? "1px solid var(--color-line)" : "none",
+          }}
         >
-          <p className="font-serif text-[25px] text-navy">{item.value}</p>
-          <p className="font-mono text-[9.5px] uppercase tracking-wide text-muted">
+          <div className="font-serif text-[25px] font-semibold leading-none text-navy">
+            {item.value}
+          </div>
+          <div
+            className="font-mono uppercase text-muted"
+            style={{ fontSize: "9.5px", letterSpacing: "0.12em", marginTop: "6px" }}
+          >
             {item.label}
-          </p>
+          </div>
         </div>
       ))}
     </div>

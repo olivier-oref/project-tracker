@@ -8,16 +8,24 @@ export function TrackerHeader({
   date: string;
 }) {
   return (
-    <header className="flex flex-col gap-2 py-8">
+    <header className="border-b border-line" style={{ padding: "30px 0 20px" }}>
       {subtitle ? (
-        <p className="font-mono text-xs uppercase tracking-wide text-gold">
+        <div
+          className="font-mono uppercase text-gold"
+          style={{ fontSize: "10.5px", letterSpacing: "0.18em", marginBottom: "9px" }}
+        >
           {subtitle}
-        </p>
+        </div>
       ) : null}
-      <h1 className="font-serif text-[36px] leading-tight text-navy">
+      <h1
+        className="font-serif font-semibold text-navy"
+        style={{ fontSize: "36px", lineHeight: 1.08, margin: "0 0 8px", letterSpacing: "-0.015em" }}
+      >
         {title}
       </h1>
-      <p className="font-mono text-xs text-muted">Status as at {date}</p>
+      <p className="font-mono text-[11px] text-muted" style={{ margin: 0 }}>
+        Status as at {date}
+      </p>
     </header>
   );
 }

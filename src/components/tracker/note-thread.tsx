@@ -26,7 +26,8 @@ export function NoteThread({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="mt-2 font-mono text-[9.5px] uppercase tracking-wide text-muted underline"
+        className="mt-2 font-mono uppercase tracking-wide text-muted underline"
+        style={{ fontSize: "9.5px" }}
       >
         {notes.length} {notes.length === 1 ? "note" : "notes"}
       </button>
@@ -34,29 +35,39 @@ export function NoteThread({
   }
 
   return (
-    <div className="mt-2 flex flex-col gap-2">
+    <div className="flex flex-col gap-1" style={{ marginTop: "6px" }}>
       {notes.map((note) => {
-        const color = note.authorColor ?? "#DDD3BC";
+        const borderColor = note.authorColor ?? "var(--color-line)";
+        const hasBg = !!note.authorColor;
         const formatted = new Intl.DateTimeFormat("en-US", {
           month: "short",
           day: "numeric",
-          hour: "numeric",
+          year: "numeric",
+          hour: "2-digit",
           minute: "2-digit",
         }).format(new Date(note.createdAt));
 
         return (
           <div
             key={note.id}
-            className="py-[5px] pl-2 pr-2"
-            style={{ borderLeft: `2px solid ${color}` }}
+            className="rounded-r-sm text-ink"
+            style={{
+              fontSize: "12px",
+              borderLeft: `2px solid ${borderColor}`,
+              padding: "5px 8px",
+              background: hasBg ? `${note.authorColor}24` : undefined,
+            }}
           >
-            <p className="text-xs text-ink">{note.content}</p>
-            <p className="mt-1 font-mono text-[9.5px]">
-              <span className="font-bold" style={{ color }}>
-                {note.authorName ?? "Unknown"}
-              </span>{" "}
-              <span className="text-muted">{formatted}</span>
-            </p>
+            <div>{note.content}</div>
+            <div
+              className="flex gap-2 font-mono text-muted"
+              style={{ marginTop: "3px", fontSize: "9.5px", letterSpacing: "0.05em" }}
+            >
+              <b className="font-semibold" style={{ color: note.authorColor ?? "var(--color-muted)" }}>
+                {note.authorName ?? "Unattributed"}
+              </b>
+              <span>{formatted}</span>
+            </div>
           </div>
         );
       })}
@@ -64,7 +75,8 @@ export function NoteThread({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="self-start font-mono text-[9.5px] uppercase tracking-wide text-muted underline"
+          className="self-start font-mono uppercase tracking-wide text-muted underline"
+          style={{ fontSize: "9.5px" }}
         >
           Hide notes
         </button>

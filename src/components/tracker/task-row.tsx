@@ -36,8 +36,8 @@ export function TaskRow({
   const isDone = task.status === "done";
 
   return (
-    <tr className="group hidden border-b border-line md:table-row">
-      <td className="px-3 py-3 align-top">
+    <tr className={`group hidden border-b border-line md:table-row${isDone ? " is-done" : ""}`}>
+      <td className="align-top" style={{ padding: "11px 10px 11px 0", width: "46%" }}>
         <EditableTitle
           projectId={projectId}
           taskId={task.id}
@@ -47,10 +47,10 @@ export function TaskRow({
         <NoteThread notes={notes} mobile={false} />
         <AddNoteForm projectId={projectId} taskId={task.id} />
       </td>
-      <td className="px-3 py-3 align-top">
+      <td className="align-top" style={{ padding: "11px 10px 11px 0" }}>
         <EditableStatus projectId={projectId} taskId={task.id} status={task.status} />
       </td>
-      <td className="px-3 py-3 align-top">
+      <td className="align-top" style={{ padding: "11px 10px 11px 0" }}>
         <EditableOwner
           projectId={projectId}
           taskId={task.id}
@@ -58,10 +58,10 @@ export function TaskRow({
           members={members}
         />
       </td>
-      <td className="px-3 py-3 align-top">
+      <td className="align-top" style={{ padding: "11px 10px 11px 0" }}>
         <EditableDueDate projectId={projectId} taskId={task.id} date={task.dueDate} />
       </td>
-      <td className="px-3 py-3 align-top">
+      <td className="align-top" style={{ padding: "11px 10px 11px 0" }}>
         <EditablePhase
           projectId={projectId}
           taskId={task.id}
@@ -69,7 +69,7 @@ export function TaskRow({
           suggestions={phaseSuggestions}
         />
       </td>
-      <td className="w-11 px-1 py-3 align-top opacity-0 group-hover:opacity-100">
+      <td className="w-8 align-top opacity-0 group-hover:opacity-100" style={{ padding: "11px 0" }}>
         <DeleteTaskButton projectId={projectId} taskId={task.id} />
       </td>
     </tr>

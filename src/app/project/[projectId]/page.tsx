@@ -102,10 +102,13 @@ export default async function ProjectPage({
   const memberOptions: MemberOption[] = [];
   const memberRows: MemberRow[] = [];
   for (const member of members) {
+    const displayName = member.name ?? member.email.split("@")[0];
     if (member.userId) {
-      const info = { name: member.name ?? member.email, color: member.color };
+      const info = { name: displayName, color: member.color };
       memberMap.set(member.userId, info);
       memberOptions.push({ id: member.userId, ...info });
+    } else {
+      memberOptions.push({ id: `pending:${member.email}`, name: `${displayName} (pending)`, color: member.color });
     }
     memberRows.push({
       id: member.id,

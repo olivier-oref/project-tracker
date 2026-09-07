@@ -33,28 +33,64 @@ export function SectionBlock({
   );
 
   return (
-    <section className="mb-10">
-      <div className="sticky top-0 z-10 flex items-baseline gap-3 border-b-2 border-navy bg-paper py-3">
-        <span className="font-mono text-sm text-gold">{sectionNumber}</span>
+    <section style={{ marginTop: "38px" }}>
+      <div
+        className="sticky top-0 z-10 flex items-end gap-3 bg-paper"
+        style={{ paddingBottom: "8px", borderBottom: "2px solid var(--color-navy)" }}
+      >
+        <span
+          className="font-mono text-gold"
+          style={{ fontSize: "11px", letterSpacing: "0.1em", paddingBottom: "3px" }}
+        >
+          {sectionNumber}
+        </span>
         <EditableSectionTitle
           projectId={projectId}
           sectionId={section.id}
           title={section.title}
         />
-        <span className="ml-auto font-mono text-xs text-muted">
+        <span
+          className="ml-auto font-mono text-muted"
+          style={{ fontSize: "11px", paddingBottom: "4px" }}
+        >
           {doneCount} / {tasks.length}
         </span>
       </div>
 
-      <table className="hidden w-full border-collapse md:table">
+      <table className="hidden w-full border-collapse md:table" style={{ marginTop: "2px" }}>
         <thead>
-          <tr className="border-b border-line text-left font-mono text-[9.5px] uppercase tracking-wide text-muted">
-            <th className="px-3 py-2 font-normal">Task</th>
-            <th className="px-3 py-2 font-normal">Status</th>
-            <th className="px-3 py-2 font-normal">Owner</th>
-            <th className="px-3 py-2 font-normal">Due</th>
-            <th className="px-3 py-2 font-normal">Phase</th>
-            <th className="w-11 px-1 py-2" />
+          <tr>
+            <th
+              className="border-b border-line text-left font-mono font-medium text-muted"
+              style={{ fontSize: "9.5px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 10px 9px 0" }}
+            >
+              Task
+            </th>
+            <th
+              className="border-b border-line text-left font-mono font-medium text-muted"
+              style={{ fontSize: "9.5px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 10px 9px 0" }}
+            >
+              Status
+            </th>
+            <th
+              className="border-b border-line text-left font-mono font-medium text-muted"
+              style={{ fontSize: "9.5px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 10px 9px 0" }}
+            >
+              Owner
+            </th>
+            <th
+              className="border-b border-line text-left font-mono font-medium text-muted"
+              style={{ fontSize: "9.5px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 10px 9px 0" }}
+            >
+              Due
+            </th>
+            <th
+              className="border-b border-line text-left font-mono font-medium text-muted"
+              style={{ fontSize: "9.5px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 10px 9px 0" }}
+            >
+              Phase
+            </th>
+            <th className="w-8 border-b border-line" />
           </tr>
         </thead>
         <tbody>
