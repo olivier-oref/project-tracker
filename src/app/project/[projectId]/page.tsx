@@ -17,6 +17,9 @@ import type { MemberInfo } from "@/components/tracker/task-row";
 import type { MemberOption } from "@/components/tracker/editable-owner";
 import type { NoteData } from "@/components/tracker/note-thread";
 import { AddSectionForm } from "@/components/tracker/add-section-form";
+import { ExportButton } from "@/components/tracker/export-button";
+import { MembersButton } from "@/components/members/members-button";
+import type { MemberRow } from "@/components/members/members-panel";
 
 export default async function ProjectPage({
   params,
@@ -82,10 +85,14 @@ export default async function ProjectPage({
 
   const members = await db
     .select({
+      id: projectMembers.id,
       userId: projectMembers.userId,
       email: projectMembers.email,
+      role: projectMembers.role,
       color: projectMembers.color,
+      joinedAt: projectMembers.joinedAt,
       name: users.name,
+      userEmail: users.email,
     })
     .from(projectMembers)
     .leftJoin(users, eq(users.id, projectMembers.userId))
@@ -93,13 +100,27 @@ export default async function ProjectPage({
 
   const memberMap = new Map<string, MemberInfo>();
   const memberOptions: MemberOption[] = [];
+  const memberRows: MemberRow[] = [];
   for (const member of members) {
     if (member.userId) {
       const info = { name: member.name ?? member.email, color: member.color };
       memberMap.set(member.userId, info);
       memberOptions.push({ id: member.userId, ...info });
     }
+    memberRows.push({
+      id: member.id,
+      userId: member.userId,
+      email: member.email,
+      role: member.role,
+      color: member.color,
+      joinedAt: member.joinedAt ? member.joinedAt.toISOString() : null,
+      user: member.userId
+        ? { id: member.userId, name: member.name, email: member.userEmail ?? member.email }
+        : null,
+    });
   }
+
+  const isOwner = membership.role === "owner";
 
   const notesByTask = new Map<string, NoteData[]>();
   for (const note of projectNotes) {
@@ -169,6 +190,15 @@ export default async function ProjectPage({
           title={project.title}
           date={dateString}
         />
+
+        <div className="flex justify-end gap-2 pb-4">
+          <ExportButton projectId={projectId} />
+          <MembersButton
+            projectId={projectId}
+            members={memberRows}
+            isOwner={isOwner}
+          />
+        </div>
 
         <SummaryStrip
           metrics={{
