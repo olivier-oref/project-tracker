@@ -27,7 +27,7 @@ export function TaskCard({
   const isDone = task.status === "done";
 
   return (
-    <div className="flex flex-col gap-3 border-b border-line px-3 py-4 md:hidden">
+    <div className="flex flex-col gap-3 border-b border-line px-3 py-4">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1">
           <EditableTitle

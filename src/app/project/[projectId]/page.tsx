@@ -11,13 +11,11 @@ import {
   users,
 } from "../../../../drizzle/schema";
 import { TrackerHeader } from "@/components/tracker/tracker-header";
-import { SummaryStrip } from "@/components/tracker/summary-strip";
-import { SectionBlock } from "@/components/tracker/section-block";
 import type { MemberInfo } from "@/components/tracker/task-row";
 import type { MemberOption } from "@/components/tracker/editable-owner";
 import type { NoteData } from "@/components/tracker/note-thread";
 import { AddSectionForm } from "@/components/tracker/add-section-form";
-import { ExportButton } from "@/components/tracker/export-button";
+import { ProjectToolbar, type FlatTaskData } from "@/components/tracker/project-toolbar";
 import { MembersButton } from "@/components/members/members-button";
 import type { MemberRow } from "@/components/members/members-panel";
 
@@ -141,40 +139,17 @@ export default async function ProjectPage({
     notesByTask.set(note.taskId, existing);
   }
 
-  const tasksBySection = new Map<
-    string,
-    {
-      id: string;
-      title: string;
-      status: string;
-      dueDate: string | null;
-      phase: string | null;
-      ownerId: string | null;
-    }[]
-  >();
-  for (const task of projectTasks) {
-    const existing = tasksBySection.get(task.sectionId) ?? [];
-    existing.push({
-      id: task.id,
-      title: task.title,
-      status: task.status,
-      dueDate: task.dueDate,
-      phase: task.phase,
-      ownerId: task.ownerId,
-    });
-    tasksBySection.set(task.sectionId, existing);
-  }
+  const allTasks: FlatTaskData[] = projectTasks.map((task) => ({
+    id: task.id,
+    title: task.title,
+    status: task.status,
+    dueDate: task.dueDate,
+    phase: task.phase,
+    ownerId: task.ownerId,
+    sectionId: task.sectionId,
+  }));
 
-  const total = projectTasks.length;
-  const done = projectTasks.filter((task) => task.status === "done").length;
-  const inProgress = projectTasks.filter(
-    (task) => task.status === "in_progress"
-  ).length;
-  const blocked = projectTasks.filter(
-    (task) => task.status === "blocked"
-  ).length;
-  const noDueDate = projectTasks.filter((task) => !task.dueDate).length;
-  const completePercent = total > 0 ? Math.round((done / total) * 100) : 0;
+  const notesByTaskObj: Record<string, NoteData[]> = Object.fromEntries(notesByTask);
 
   const dateString = new Intl.DateTimeFormat("en-US", {
     month: "long",
@@ -193,8 +168,7 @@ export default async function ProjectPage({
           date={dateString}
         />
 
-        <div className="flex justify-end gap-2 pb-4">
-          <ExportButton projectId={projectId} />
+        <div className="flex justify-end gap-2 py-2">
           <MembersButton
             projectId={projectId}
             members={memberRows}
@@ -202,31 +176,19 @@ export default async function ProjectPage({
           />
         </div>
 
-        <SummaryStrip
-          metrics={{
-            total,
-            done,
-            inProgress,
-            blocked,
-            noDueDate,
-            completePercent,
-          }}
+        <ProjectToolbar
+          projectId={projectId}
+          sections={projectSections.map((section) => ({
+            id: section.id,
+            title: section.title,
+            sortOrder: section.sortOrder,
+          }))}
+          tasks={allTasks}
+          notesByTask={notesByTaskObj}
+          members={memberOptions}
         />
 
-        <div className="py-4">
-          {projectSections.map((section, index) => (
-            <SectionBlock
-              key={section.id}
-              projectId={projectId}
-              section={section}
-              index={index}
-              tasks={tasksBySection.get(section.id) ?? []}
-              notesByTask={notesByTask}
-              members={memberOptions}
-            />
-          ))}
-          <AddSectionForm projectId={projectId} />
-        </div>
+        <AddSectionForm projectId={projectId} />
 
         <footer className="border-t border-line py-6 font-mono text-xs text-muted">
           Project Tracker

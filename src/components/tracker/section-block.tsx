@@ -34,6 +34,15 @@ export function SectionBlock({
 
   return (
     <section style={{ marginTop: "38px" }}>
+      <style>{`
+        .desktop-table { display: block; }
+        .mobile-cards { display: none; }
+        @media (max-width: 767px) {
+          .desktop-table { display: none; }
+          .mobile-cards { display: block; }
+        }
+      `}</style>
+
       <div
         className="sticky top-0 z-10 flex items-end gap-3 bg-paper"
         style={{ paddingBottom: "8px", borderBottom: "2px solid var(--color-navy)" }}
@@ -57,8 +66,7 @@ export function SectionBlock({
         </span>
       </div>
 
-      {/* Desktop: table layout */}
-      <div className="hidden md:block">
+      <div className="desktop-table">
         <table className="w-full border-collapse" style={{ marginTop: "2px" }}>
           <thead>
             <tr>
@@ -111,8 +119,7 @@ export function SectionBlock({
         <AddTaskRow projectId={projectId} sectionId={section.id} />
       </div>
 
-      {/* Mobile: card layout */}
-      <div className="md:hidden">
+      <div className="mobile-cards">
         {tasks.map((task) => (
           <TaskCard
             key={task.id}
