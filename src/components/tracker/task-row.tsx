@@ -36,7 +36,7 @@ export function TaskRow({
   const isDone = task.status === "done";
 
   return (
-    <tr className={`group hidden border-b border-line md:table-row${isDone ? " is-done" : ""}`}>
+    <tr className={`group border-b border-line${isDone ? " is-done" : ""}`}>
       <td className="align-top" style={{ padding: "11px 10px 11px 0", width: "46%" }}>
         <EditableTitle
           projectId={projectId}

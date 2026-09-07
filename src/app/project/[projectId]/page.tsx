@@ -104,11 +104,10 @@ export default async function ProjectPage({
   for (const member of members) {
     const displayName = member.name ?? member.email.split("@")[0];
     if (member.userId) {
+      const isPending = !member.joinedAt;
       const info = { name: displayName, color: member.color };
       memberMap.set(member.userId, info);
-      memberOptions.push({ id: member.userId, ...info });
-    } else {
-      memberOptions.push({ id: `pending:${member.email}`, name: `${displayName} (pending)`, color: member.color });
+      memberOptions.push({ id: member.userId, name: isPending ? `${displayName} (pending)` : displayName, color: member.color });
     }
     memberRows.push({
       id: member.id,

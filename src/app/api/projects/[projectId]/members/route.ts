@@ -5,6 +5,19 @@ import { verifyProjectMembership } from "@/lib/project-auth";
 import { projectMembers, users } from "../../../../../../drizzle/schema";
 import { getNextColor } from "@/lib/colors";
 
+async function findOrCreateUser(email: string) {
+  const [existing] = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email));
+  if (existing) return existing;
+  const [created] = await db
+    .insert(users)
+    .values({ email, name: email.split("@")[0] })
+    .returning();
+  return created;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ projectId: string }> }
@@ -75,6 +88,8 @@ export async function POST(
     .from(projectMembers)
     .where(eq(projectMembers.projectId, projectId));
 
+  const invitedUser = await findOrCreateUser(email);
+
   const [member] = await db
     .insert(projectMembers)
     .values({
@@ -83,7 +98,7 @@ export async function POST(
       role: "member",
       color: getNextColor(memberCount),
       invitedBy: auth.userId,
-      userId: null,
+      userId: invitedUser.id,
       joinedAt: null,
     })
     .returning();

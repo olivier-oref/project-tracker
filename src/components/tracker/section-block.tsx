@@ -57,59 +57,61 @@ export function SectionBlock({
         </span>
       </div>
 
-      <table className="hidden w-full border-collapse md:table" style={{ marginTop: "2px" }}>
-        <thead>
-          <tr>
-            <th
-              className="border-b border-line text-left font-mono font-medium text-muted"
-              style={{ fontSize: "9.5px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 10px 9px 0" }}
-            >
-              Task
-            </th>
-            <th
-              className="border-b border-line text-left font-mono font-medium text-muted"
-              style={{ fontSize: "9.5px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 10px 9px 0" }}
-            >
-              Status
-            </th>
-            <th
-              className="border-b border-line text-left font-mono font-medium text-muted"
-              style={{ fontSize: "9.5px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 10px 9px 0" }}
-            >
-              Owner
-            </th>
-            <th
-              className="border-b border-line text-left font-mono font-medium text-muted"
-              style={{ fontSize: "9.5px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 10px 9px 0" }}
-            >
-              Due
-            </th>
-            <th
-              className="border-b border-line text-left font-mono font-medium text-muted"
-              style={{ fontSize: "9.5px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 10px 9px 0" }}
-            >
-              Phase
-            </th>
-            <th className="w-8 border-b border-line" />
-          </tr>
-        </thead>
-        <tbody>
-          {tasks.map((task) => (
-            <TaskRow
-              key={task.id}
-              projectId={projectId}
-              task={task}
-              notes={notesByTask.get(task.id) ?? []}
-              members={members}
-              phaseSuggestions={phaseSuggestions}
-            />
-          ))}
-        </tbody>
-      </table>
+      {/* Desktop: table layout */}
       <div className="hidden md:block">
+        <table className="w-full border-collapse" style={{ marginTop: "2px" }}>
+          <thead>
+            <tr>
+              <th
+                className="border-b border-line text-left font-mono font-medium text-muted"
+                style={{ fontSize: "9.5px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 10px 9px 0", width: "46%" }}
+              >
+                Task
+              </th>
+              <th
+                className="border-b border-line text-left font-mono font-medium text-muted"
+                style={{ fontSize: "9.5px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 10px 9px 0" }}
+              >
+                Status
+              </th>
+              <th
+                className="border-b border-line text-left font-mono font-medium text-muted"
+                style={{ fontSize: "9.5px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 10px 9px 0" }}
+              >
+                Owner
+              </th>
+              <th
+                className="border-b border-line text-left font-mono font-medium text-muted"
+                style={{ fontSize: "9.5px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 10px 9px 0" }}
+              >
+                Due
+              </th>
+              <th
+                className="border-b border-line text-left font-mono font-medium text-muted"
+                style={{ fontSize: "9.5px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 10px 9px 0" }}
+              >
+                Phase
+              </th>
+              <th className="w-8 border-b border-line" />
+            </tr>
+          </thead>
+          <tbody>
+            {tasks.map((task) => (
+              <TaskRow
+                key={task.id}
+                projectId={projectId}
+                task={task}
+                notes={notesByTask.get(task.id) ?? []}
+                members={members}
+                phaseSuggestions={phaseSuggestions}
+              />
+            ))}
+          </tbody>
+        </table>
         <AddTaskRow projectId={projectId} sectionId={section.id} />
       </div>
 
+      {/* Mobile: card layout */}
       <div className="md:hidden">
         {tasks.map((task) => (
           <TaskCard
