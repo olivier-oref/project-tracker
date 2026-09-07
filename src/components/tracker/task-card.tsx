@@ -1,53 +1,72 @@
+"use client";
+
 import type { ReactNode } from "react";
-import { StatusBadge } from "@/components/tracker/status-badge";
-import { OwnerBadge } from "@/components/tracker/owner-badge";
-import { PhaseBadge } from "@/components/tracker/phase-badge";
-import { DueDateBadge } from "@/components/tracker/due-date-badge";
+import { EditableStatus } from "@/components/tracker/editable-status";
+import { EditableOwner, type MemberOption } from "@/components/tracker/editable-owner";
+import { EditablePhase } from "@/components/tracker/editable-phase";
+import { EditableDueDate } from "@/components/tracker/editable-due-date";
+import { EditableTitle } from "@/components/tracker/editable-title";
+import { DeleteTaskButton } from "@/components/tracker/delete-task-button";
 import { NoteThread, type NoteData } from "@/components/tracker/note-thread";
-import type { MemberInfo, TaskData } from "@/components/tracker/task-row";
+import { AddNoteForm } from "@/components/tracker/add-note-form";
+import type { TaskData } from "@/components/tracker/task-row";
 
 export function TaskCard({
+  projectId,
   task,
   notes,
   members,
+  phaseSuggestions,
 }: {
+  projectId: string;
   task: TaskData;
   notes: NoteData[];
-  members: Map<string, MemberInfo>;
+  members: MemberOption[];
+  phaseSuggestions: string[];
 }) {
-  const owner = task.ownerId ? members.get(task.ownerId) ?? null : null;
   const isDone = task.status === "done";
 
   return (
     <div className="flex flex-col gap-3 border-b border-line px-3 py-4 md:hidden">
-      <p
-        className={
-          isDone
-            ? "text-muted line-through decoration-line-2"
-            : "text-ink"
-        }
-      >
-        {task.title}
-      </p>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1">
+          <EditableTitle
+            projectId={projectId}
+            taskId={task.id}
+            title={task.title}
+            isDone={isDone}
+          />
+        </div>
+        <DeleteTaskButton projectId={projectId} taskId={task.id} />
+      </div>
 
       <div className="flex flex-col gap-1.5 font-mono text-[9.5px] uppercase tracking-wide text-muted">
         <Field label="Status">
-          <StatusBadge status={task.status} />
+          <EditableStatus projectId={projectId} taskId={task.id} status={task.status} />
         </Field>
         <Field label="Owner">
-          <OwnerBadge name={owner?.name ?? null} color={owner?.color ?? null} />
+          <EditableOwner
+            projectId={projectId}
+            taskId={task.id}
+            ownerId={task.ownerId}
+            members={members}
+          />
         </Field>
         <Field label="Due">
-          <DueDateBadge date={task.dueDate} />
+          <EditableDueDate projectId={projectId} taskId={task.id} date={task.dueDate} />
         </Field>
-        {task.phase ? (
-          <Field label="Phase">
-            <PhaseBadge phase={task.phase} />
-          </Field>
-        ) : null}
+        <Field label="Phase">
+          <EditablePhase
+            projectId={projectId}
+            taskId={task.id}
+            phase={task.phase}
+            suggestions={phaseSuggestions}
+          />
+        </Field>
       </div>
 
       <NoteThread notes={notes} mobile={true} />
+      <AddNoteForm projectId={projectId} taskId={task.id} />
     </div>
   );
 }

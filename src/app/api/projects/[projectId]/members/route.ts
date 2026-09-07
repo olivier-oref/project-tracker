@@ -1,0 +1,136 @@
+import { NextResponse } from "next/server";
+import { eq, and, count } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { verifyProjectMembership } from "@/lib/project-auth";
+import { projectMembers, users } from "../../../../../../drizzle/schema";
+import { getNextColor } from "@/lib/colors";
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ projectId: string }> }
+) {
+  const { projectId } = await params;
+  const auth = await verifyProjectMembership(projectId);
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  const members = await db
+    .select({
+      id: projectMembers.id,
+      projectId: projectMembers.projectId,
+      userId: projectMembers.userId,
+      email: projectMembers.email,
+      role: projectMembers.role,
+      color: projectMembers.color,
+      invitedAt: projectMembers.invitedAt,
+      joinedAt: projectMembers.joinedAt,
+      user: {
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        avatarUrl: users.avatarUrl,
+      },
+    })
+    .from(projectMembers)
+    .leftJoin(users, eq(projectMembers.userId, users.id))
+    .where(eq(projectMembers.projectId, projectId));
+
+  return NextResponse.json(members);
+}
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ projectId: string }> }
+) {
+  const { projectId } = await params;
+  const auth = await verifyProjectMembership(projectId);
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  const body = await request.json();
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+
+  if (!email || !email.includes("@")) {
+    return NextResponse.json({ error: "Valid email is required" }, { status: 400 });
+  }
+
+  const [existing] = await db
+    .select()
+    .from(projectMembers)
+    .where(
+      and(eq(projectMembers.projectId, projectId), eq(projectMembers.email, email))
+    );
+
+  if (existing) {
+    return NextResponse.json(
+      { error: "This person is already invited" },
+      { status: 400 }
+    );
+  }
+
+  const [{ value: memberCount }] = await db
+    .select({ value: count() })
+    .from(projectMembers)
+    .where(eq(projectMembers.projectId, projectId));
+
+  const [member] = await db
+    .insert(projectMembers)
+    .values({
+      projectId,
+      email,
+      role: "member",
+      color: getNextColor(memberCount),
+      invitedBy: auth.userId,
+      userId: null,
+      joinedAt: null,
+    })
+    .returning();
+
+  return NextResponse.json(member);
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ projectId: string }> }
+) {
+  const { projectId } = await params;
+  const auth = await verifyProjectMembership(projectId);
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  const body = await request.json();
+  const memberId = typeof body.memberId === "string" ? body.memberId : "";
+
+  if (!memberId) {
+    return NextResponse.json({ error: "memberId is required" }, { status: 400 });
+  }
+
+  const [target] = await db
+    .select()
+    .from(projectMembers)
+    .where(
+      and(eq(projectMembers.id, memberId), eq(projectMembers.projectId, projectId))
+    );
+
+  if (!target) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  if (target.role === "owner") {
+    return NextResponse.json(
+      { error: "The owner cannot be removed" },
+      { status: 400 }
+    );
+  }
+
+  if (auth.membership.role !== "owner") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  await db.delete(projectMembers).where(eq(projectMembers.id, memberId));
+
+  return NextResponse.json({ success: true });
+}

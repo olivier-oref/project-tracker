@@ -14,7 +14,9 @@ import { TrackerHeader } from "@/components/tracker/tracker-header";
 import { SummaryStrip } from "@/components/tracker/summary-strip";
 import { SectionBlock } from "@/components/tracker/section-block";
 import type { MemberInfo } from "@/components/tracker/task-row";
+import type { MemberOption } from "@/components/tracker/editable-owner";
 import type { NoteData } from "@/components/tracker/note-thread";
+import { AddSectionForm } from "@/components/tracker/add-section-form";
 
 export default async function ProjectPage({
   params,
@@ -90,12 +92,12 @@ export default async function ProjectPage({
     .where(eq(projectMembers.projectId, projectId));
 
   const memberMap = new Map<string, MemberInfo>();
+  const memberOptions: MemberOption[] = [];
   for (const member of members) {
     if (member.userId) {
-      memberMap.set(member.userId, {
-        name: member.name ?? member.email,
-        color: member.color,
-      });
+      const info = { name: member.name ?? member.email, color: member.color };
+      memberMap.set(member.userId, info);
+      memberOptions.push({ id: member.userId, ...info });
     }
   }
 
@@ -183,13 +185,15 @@ export default async function ProjectPage({
           {projectSections.map((section, index) => (
             <SectionBlock
               key={section.id}
+              projectId={projectId}
               section={section}
               index={index}
               tasks={tasksBySection.get(section.id) ?? []}
               notesByTask={notesByTask}
-              members={memberMap}
+              members={memberOptions}
             />
           ))}
+          <AddSectionForm projectId={projectId} />
         </div>
 
         <footer className="border-t border-line py-6 font-mono text-xs text-muted">
