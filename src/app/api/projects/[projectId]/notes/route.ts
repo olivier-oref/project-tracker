@@ -18,9 +18,9 @@ export async function POST(
   const taskId = typeof body.taskId === "string" ? body.taskId : "";
   const content = typeof body.content === "string" ? body.content.trim() : "";
 
-  if (!taskId || !content) {
+  if (!taskId) {
     return NextResponse.json(
-      { error: "taskId and content are required" },
+      { error: "taskId is required" },
       { status: 400 }
     );
   }

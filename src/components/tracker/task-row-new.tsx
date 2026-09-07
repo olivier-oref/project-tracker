@@ -101,6 +101,19 @@ export function TaskRowNew({
     patchTask({ title: e.target.value });
   }
 
+  function onOwnerChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const name = e.target.value.trim();
+    const match = members.find((m) => m.name.toLowerCase() === name.toLowerCase());
+    const wrap = e.target.parentElement;
+    if (wrap && match) {
+      wrap.style.setProperty("--o", match.color);
+      wrap.style.setProperty("--obg", tint(match.color, 0.14));
+    } else if (wrap) {
+      wrap.style.removeProperty("--o");
+      wrap.style.removeProperty("--obg");
+    }
+  }
+
   function onOwnerBlur(e: React.FocusEvent<HTMLInputElement>) {
     const name = e.target.value.trim();
     const match = members.find((m) => m.name.toLowerCase() === name.toLowerCase());
@@ -156,6 +169,7 @@ export function TaskRowNew({
               className="owner"
               defaultValue={owner?.name ?? ""}
               placeholder="Unassigned"
+              onChange={onOwnerChange}
               onBlur={onOwnerBlur}
             />
           </span>
