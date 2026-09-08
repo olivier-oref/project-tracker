@@ -41,6 +41,7 @@ export const projectMembers = pgTable(
     invitedBy: uuid("invited_by").references(() => users.id),
     invitedAt: timestamp("invited_at", { withTimezone: true }).default(sql`now()`),
     joinedAt: timestamp("joined_at", { withTimezone: true }),
+    lastAccessedAt: timestamp("last_accessed_at", { withTimezone: true }),
   },
   (table) => [unique().on(table.projectId, table.email)]
 );

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { verifyProjectMembership } from "@/lib/project-auth";
+import { verifyProjectMembership, touchProject } from "@/lib/project-auth";
 import { notes, tasks, sections } from "../../../../../../../drizzle/schema";
 
 async function verifyNoteAccess(projectId: string, noteId: string) {
@@ -26,7 +26,8 @@ export async function PATCH(
   const { projectId, noteId } = await params;
   const result = await verifyNoteAccess(projectId, noteId);
   if ("error" in result) {
-    return NextResponse.json({ error: result.error }, { status: result.status });
+    touchProject(projectId);
+  return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
   const body = await request.json();
@@ -36,7 +37,8 @@ export async function PATCH(
   if ("authorName" in body) updates.authorName = body.authorName;
 
   if (Object.keys(updates).length === 0) {
-    return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+    touchProject(projectId);
+  return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
 
   const [updated] = await db
@@ -45,6 +47,7 @@ export async function PATCH(
     .where(eq(notes.id, noteId))
     .returning();
 
+  touchProject(projectId);
   return NextResponse.json(updated);
 }
 
@@ -55,9 +58,11 @@ export async function DELETE(
   const { projectId, noteId } = await params;
   const result = await verifyNoteAccess(projectId, noteId);
   if ("error" in result) {
-    return NextResponse.json({ error: result.error }, { status: result.status });
+    touchProject(projectId);
+  return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
   await db.delete(notes).where(eq(notes.id, noteId));
+  touchProject(projectId);
   return NextResponse.json({ success: true });
 }

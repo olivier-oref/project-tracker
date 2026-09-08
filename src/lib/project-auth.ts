@@ -1,7 +1,7 @@
 import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { projectMembers } from "../../drizzle/schema";
+import { projectMembers, projects } from "../../drizzle/schema";
 
 export async function verifyProjectMembership(projectId: string) {
   const session = await auth();
@@ -20,4 +20,11 @@ export async function verifyProjectMembership(projectId: string) {
   if (!membership) return { error: "Forbidden", status: 403 } as const;
 
   return { session, membership, userId: session.user.id } as const;
+}
+
+export function touchProject(projectId: string) {
+  db.update(projects)
+    .set({ updatedAt: new Date() })
+    .where(eq(projects.id, projectId))
+    .then(() => {});
 }

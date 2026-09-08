@@ -7,8 +7,7 @@ import {
   sections,
   tasks,
 } from "../../../drizzle/schema";
-import { ProjectCard, type ProjectCardMetrics } from "@/components/dashboard/project-card";
-import { CreateProjectForm } from "@/components/dashboard/create-project-form";
+import { DashboardClient, type DashboardProject } from "@/components/dashboard/dashboard-client";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -19,6 +18,10 @@ export default async function DashboardPage() {
       id: projects.id,
       title: projects.title,
       subtitle: projects.subtitle,
+      createdAt: projects.createdAt,
+      updatedAt: projects.updatedAt,
+      role: projectMembers.role,
+      lastAccessedAt: projectMembers.lastAccessedAt,
     })
     .from(projects)
     .innerJoin(projectMembers, eq(projectMembers.projectId, projects.id))
@@ -53,11 +56,16 @@ export default async function DashboardPage() {
 
   const countsByProject = new Map(counts.map((c) => [c.projectId, c]));
 
-  const projectMetrics: ProjectCardMetrics[] = memberProjects.map((p) => {
+  const ownedProjects: DashboardProject[] = [];
+  const sharedProjects: DashboardProject[] = [];
+
+  for (const p of memberProjects) {
     const c = countsByProject.get(p.id);
     const total = c?.total ?? 0;
     const done = c?.done ?? 0;
-    return {
+    const isOwner = p.role === "owner";
+
+    const entry: DashboardProject = {
       id: p.id,
       title: p.title,
       subtitle: p.subtitle,
@@ -67,8 +75,18 @@ export default async function DashboardPage() {
       blocked: c?.blocked ?? 0,
       unassigned: c?.unassigned ?? 0,
       completion: total > 0 ? Math.round((done / total) * 100) : 0,
+      isOwner,
+      createdAt: (p.createdAt ?? new Date(0)).toISOString(),
+      updatedAt: (p.updatedAt ?? new Date(0)).toISOString(),
+      lastAccessedAt: p.lastAccessedAt ? p.lastAccessedAt.toISOString() : null,
     };
-  });
+
+    if (isOwner) {
+      ownedProjects.push(entry);
+    } else {
+      sharedProjects.push(entry);
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -95,24 +113,7 @@ export default async function DashboardPage() {
       </header>
 
       <main className="flex-1 px-6 py-8">
-        {projectMetrics.length === 0 ? (
-          <div className="mx-auto max-w-md py-16 text-center">
-            <p className="font-serif text-xl text-navy">No projects yet</p>
-            <p className="mt-2 font-sans text-sm text-muted">
-              Create your first project to get started.
-            </p>
-            <div className="mt-6">
-              <CreateProjectForm />
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {projectMetrics.map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-            <CreateProjectForm />
-          </div>
-        )}
+        <DashboardClient ownedProjects={ownedProjects} sharedProjects={sharedProjects} />
       </main>
     </div>
   );

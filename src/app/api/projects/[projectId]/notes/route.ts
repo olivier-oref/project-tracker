@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { verifyProjectMembership } from "@/lib/project-auth";
+import { verifyProjectMembership, touchProject } from "@/lib/project-auth";
 import { notes, sections, tasks, users } from "../../../../../../drizzle/schema";
 
 export async function POST(
@@ -11,7 +11,8 @@ export async function POST(
   const { projectId } = await params;
   const auth = await verifyProjectMembership(projectId);
   if ("error" in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
+    touchProject(projectId);
+  return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   const body = await request.json();
@@ -19,7 +20,8 @@ export async function POST(
   const content = typeof body.content === "string" ? body.content.trim() : "";
 
   if (!taskId) {
-    return NextResponse.json(
+    touchProject(projectId);
+  return NextResponse.json(
       { error: "taskId is required" },
       { status: 400 }
     );
@@ -32,7 +34,8 @@ export async function POST(
     .where(and(eq(tasks.id, taskId), eq(sections.projectId, projectId)));
 
   if (!taskRow) {
-    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    touchProject(projectId);
+  return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }
 
   const [note] = await db
@@ -45,5 +48,6 @@ export async function POST(
     .from(users)
     .where(eq(users.id, auth.userId));
 
+  touchProject(projectId);
   return NextResponse.json({ ...note, author: author ?? null });
 }

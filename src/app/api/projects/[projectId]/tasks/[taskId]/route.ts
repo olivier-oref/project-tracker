@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq, and, max } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { verifyProjectMembership } from "@/lib/project-auth";
+import { verifyProjectMembership, touchProject } from "@/lib/project-auth";
 import { sections, tasks } from "../../../../../../../drizzle/schema";
 
 async function getTaskInProject(projectId: string, taskId: string) {
@@ -21,12 +21,14 @@ export async function PATCH(
   const { projectId, taskId } = await params;
   const auth = await verifyProjectMembership(projectId);
   if ("error" in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
+    touchProject(projectId);
+  return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   const row = await getTaskInProject(projectId, taskId);
   if (!row) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    touchProject(projectId);
+  return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   const body = await request.json();
@@ -35,14 +37,16 @@ export async function PATCH(
   if (body.title !== undefined) {
     const title = typeof body.title === "string" ? body.title.trim() : "";
     if (!title) {
-      return NextResponse.json({ error: "Title is required" }, { status: 400 });
+      touchProject(projectId);
+  return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
     updates.title = title;
   }
 
   if (body.status !== undefined) {
     if (typeof body.status !== "string" || !body.status.trim()) {
-      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+      touchProject(projectId);
+  return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
     updates.status = body.status;
   }
@@ -67,7 +71,8 @@ export async function PATCH(
       .where(and(eq(sections.id, newSectionId), eq(sections.projectId, projectId)));
 
     if (!newSection) {
-      return NextResponse.json({ error: "Section not found" }, { status: 404 });
+      touchProject(projectId);
+  return NextResponse.json({ error: "Section not found" }, { status: 404 });
     }
 
     const [{ value }] = await db
@@ -80,7 +85,8 @@ export async function PATCH(
   } else if (body.sortOrder !== undefined) {
     const sortOrder = Number(body.sortOrder);
     if (!Number.isInteger(sortOrder)) {
-      return NextResponse.json({ error: "Invalid sortOrder" }, { status: 400 });
+      touchProject(projectId);
+  return NextResponse.json({ error: "Invalid sortOrder" }, { status: 400 });
     }
     updates.sortOrder = sortOrder;
   }
@@ -91,6 +97,7 @@ export async function PATCH(
     .where(eq(tasks.id, taskId))
     .returning();
 
+  touchProject(projectId);
   return NextResponse.json(task);
 }
 
@@ -101,15 +108,18 @@ export async function DELETE(
   const { projectId, taskId } = await params;
   const auth = await verifyProjectMembership(projectId);
   if ("error" in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
+    touchProject(projectId);
+  return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   const row = await getTaskInProject(projectId, taskId);
   if (!row) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    touchProject(projectId);
+  return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   await db.delete(tasks).where(eq(tasks.id, taskId));
 
+  touchProject(projectId);
   return NextResponse.json({ success: true });
 }

@@ -38,6 +38,11 @@ export default async function ProjectPage({
 
   if (!membership) return notFound();
 
+  db.update(projectMembers)
+    .set({ lastAccessedAt: new Date() })
+    .where(eq(projectMembers.id, membership.id))
+    .then(() => {});
+
   const [project] = await db
     .select()
     .from(projects)
@@ -154,6 +159,22 @@ export default async function ProjectPage({
 
   return (
     <>
+      <div className="tracker-scope">
+        <a
+          href="/dashboard"
+          style={{
+            display: "inline-block",
+            margin: "12px 0 0 28px",
+            fontFamily: "var(--mono)",
+            fontSize: "11px",
+            color: "var(--muted)",
+            textDecoration: "none",
+          }}
+        >
+          ← Dashboard
+        </a>
+      </div>
+
       <div className="flex justify-end gap-2 px-7 py-2">
         <MembersButton
           projectId={projectId}

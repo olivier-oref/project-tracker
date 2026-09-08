@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq, max } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { verifyProjectMembership } from "@/lib/project-auth";
+import { verifyProjectMembership, touchProject } from "@/lib/project-auth";
 import { sections } from "../../../../../../drizzle/schema";
 
 export async function POST(
@@ -11,14 +11,16 @@ export async function POST(
   const { projectId } = await params;
   const auth = await verifyProjectMembership(projectId);
   if ("error" in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
+    touchProject(projectId);
+  return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   const body = await request.json();
   const title = typeof body.title === "string" ? body.title.trim() : "";
 
   if (!title) {
-    return NextResponse.json({ error: "Title is required" }, { status: 400 });
+    touchProject(projectId);
+  return NextResponse.json({ error: "Title is required" }, { status: 400 });
   }
 
   const [{ value }] = await db
@@ -33,5 +35,6 @@ export async function POST(
     .values({ projectId, title, sortOrder })
     .returning();
 
+  touchProject(projectId);
   return NextResponse.json(section);
 }

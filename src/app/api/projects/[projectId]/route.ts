@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { verifyProjectMembership } from "@/lib/project-auth";
-import { projects } from "../../../../../drizzle/schema";
+import { projects, projectMembers } from "../../../../../drizzle/schema";
 
 export async function GET(
   request: Request,
@@ -83,11 +83,23 @@ export async function DELETE(
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
+  const body = await request.json().catch(() => ({}));
+  const action = typeof body.action === "string" ? body.action : "delete";
+
+  if (action === "leave") {
+    if (auth.membership.role === "owner") {
+      return NextResponse.json({ error: "Owner cannot leave. Delete the project instead." }, { status: 400 });
+    }
+    await db.delete(projectMembers).where(
+      and(eq(projectMembers.projectId, projectId), eq(projectMembers.userId, auth.userId))
+    );
+    return NextResponse.json({ success: true });
+  }
+
   if (auth.membership.role !== "owner") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   await db.delete(projects).where(eq(projects.id, projectId));
-
   return NextResponse.json({ success: true });
 }
