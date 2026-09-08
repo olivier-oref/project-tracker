@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ConfirmDeleteModal } from "./confirm-delete-modal";
 
@@ -20,35 +20,49 @@ export type ProjectCardMetrics = {
 export function ProjectCard({ project }: { project: ProjectCardMetrics }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuOpen]);
 
   return (
     <div className="group relative flex flex-col gap-4 rounded-lg border border-line bg-paper-2 p-5 transition-colors hover:border-navy">
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          setMenuOpen((v) => !v);
-        }}
-        aria-label="Project actions"
-        className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full text-lg text-muted hover:bg-paper-3 hover:text-navy"
-      >
-        ⋯
-      </button>
+      <div ref={menuRef} className="absolute right-3 top-3">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            setMenuOpen((v) => !v);
+          }}
+          aria-label="Project actions"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-lg text-muted hover:bg-paper-3 hover:text-navy"
+        >
+          ⋯
+        </button>
 
-      {menuOpen ? (
-        <div className="absolute right-3 top-14 z-10 min-w-[160px] rounded-lg border border-line bg-paper shadow-lg">
-          <button
-            type="button"
-            onClick={() => {
-              setMenuOpen(false);
-              setModalOpen(true);
-            }}
-            className="min-h-[44px] w-full rounded-lg px-4 text-left font-mono text-xs uppercase tracking-wider text-rust hover:bg-paper-3"
-          >
-            {project.isOwner ? "Delete project" : "Leave project"}
-          </button>
-        </div>
-      ) : null}
+        {menuOpen ? (
+          <div className="absolute right-0 top-full z-10 mt-1 min-w-[160px] rounded-lg border border-line bg-paper shadow-lg">
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                setModalOpen(true);
+              }}
+              className="min-h-[44px] w-full rounded-lg px-4 text-left font-mono text-xs uppercase tracking-wider text-rust hover:bg-paper-3"
+            >
+              {project.isOwner ? "Delete project" : "Leave project"}
+            </button>
+          </div>
+        ) : null}
+      </div>
 
       <Link href={`/project/${project.id}`} className="flex flex-col gap-4">
         <div>
