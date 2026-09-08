@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ProjectCard, type ProjectCardMetrics } from "./project-card";
 import { CreateProjectForm } from "./create-project-form";
 
@@ -47,6 +48,15 @@ export function DashboardClient({
   const [sort, setSort] = useState<SortKey>("lastAccessed");
   const [showAllOwned, setShowAllOwned] = useState(false);
   const [showAllShared, setShowAllShared] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    function onVisibility() {
+      if (document.visibilityState === "visible") router.refresh();
+    }
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [router]);
 
   const sortedOwned = useMemo(() => sortProjects(ownedProjects, sort), [ownedProjects, sort]);
   const sortedShared = useMemo(() => sortProjects(sharedProjects, sort), [sharedProjects, sort]);

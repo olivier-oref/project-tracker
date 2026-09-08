@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { TopicSection } from "@/components/tracker/topic-section";
 import { TaskRowNew, type FlatTask } from "@/components/tracker/task-row-new";
@@ -67,6 +67,31 @@ export function TrackerApp({
   const [filterOwner, setFilterOwner] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [newTopicName, setNewTopicName] = useState("");
+  const lastUpdatedRef = useRef("");
+
+  useEffect(() => {
+    function onVisibility() {
+      if (document.visibilityState === "visible") router.refresh();
+    }
+    document.addEventListener("visibilitychange", onVisibility);
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/projects/${projectId}/version`);
+        if (!res.ok) return;
+        const { updatedAt } = await res.json();
+        if (lastUpdatedRef.current && updatedAt !== lastUpdatedRef.current) {
+          router.refresh();
+        }
+        lastUpdatedRef.current = updatedAt;
+      } catch {}
+    }, 60000);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      clearInterval(interval);
+    };
+  }, [projectId, router]);
 
   function onSave() {
     startTransition(() => router.refresh());
