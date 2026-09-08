@@ -1,11 +1,42 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
+import { compare } from "bcryptjs";
 import { eq, and, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users, projectMembers } from "../../drizzle/schema";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [Google],
+  providers: [
+    Google,
+    Credentials({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const email = typeof credentials?.email === "string" ? credentials.email.trim().toLowerCase() : "";
+        const password = typeof credentials?.password === "string" ? credentials.password : "";
+        if (!email || !password) return null;
+
+        const [user] = await db
+          .select()
+          .from(users)
+          .where(eq(users.email, email));
+
+        if (!user || !user.passwordHash) return null;
+
+        const valid = await compare(password, user.passwordHash);
+        if (!valid) return null;
+
+        return { id: user.id, email: user.email, name: user.name, image: user.avatarUrl };
+      },
+    }),
+  ],
+  pages: {
+    signIn: "/auth/signin",
+  },
+  session: { strategy: "jwt" },
   callbacks: {
     async signIn({ user }) {
       if (!user.email) return false;
@@ -59,7 +90,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     authorized({ auth, request }) {
       const isLoggedIn = !!auth?.user;
-      const isAuthPage = request.nextUrl.pathname.startsWith("/api/auth");
+      const isAuthPage = request.nextUrl.pathname.startsWith("/api/auth") ||
+        request.nextUrl.pathname.startsWith("/auth/");
       if (isAuthPage) return true;
       return isLoggedIn;
     },
