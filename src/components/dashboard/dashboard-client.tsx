@@ -97,7 +97,7 @@ export function DashboardClient({
         projects={sortedShared}
         showAll={showAllShared}
         onToggle={() => setShowAllShared((v) => !v)}
-        emptyLabel="No shared projects"
+        emptyLabel="No shared projects yet"
       />
     </div>
   );
@@ -126,7 +126,7 @@ function ProjectSection({
       <h2 className="font-serif text-lg text-navy">{title}</h2>
 
       {projects.length === 0 && !showCreate ? (
-        <p className="font-sans text-sm text-muted">{emptyLabel}</p>
+        <p className="font-sans text-sm italic text-muted">{emptyLabel}</p>
       ) : (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((project) => (

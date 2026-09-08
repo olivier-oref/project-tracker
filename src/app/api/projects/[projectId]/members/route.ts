@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { verifyProjectMembership } from "@/lib/project-auth";
 import { projectMembers, users, projects } from "../../../../../../drizzle/schema";
 import { getNextColor } from "@/lib/colors";
+import { sendInviteEmail } from "@/lib/email";
 
 async function findOrCreateUser(email: string) {
   const [existing] = await db
@@ -102,6 +103,18 @@ export async function POST(
       joinedAt: null,
     })
     .returning();
+
+  const [project] = await db
+    .select({ title: projects.title })
+    .from(projects)
+    .where(eq(projects.id, projectId));
+
+  sendInviteEmail({
+    to: email,
+    inviterName: auth.session.user.name ?? "Someone",
+    projectTitle: project?.title ?? "a project",
+    projectUrl: `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/project/${projectId}`,
+  });
 
   return NextResponse.json(member);
 }
