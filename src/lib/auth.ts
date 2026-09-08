@@ -65,7 +65,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         .where(
           and(
             eq(projectMembers.email, user.email),
-            isNull(projectMembers.userId),
             isNull(projectMembers.joinedAt)
           )
         );
