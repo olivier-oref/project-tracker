@@ -103,6 +103,10 @@ function SignInForm() {
             }}
           />
 
+          <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: "#6E6656", margin: 0, textAlign: "right" }}>
+            Forgot password? Contact your project admin.
+          </p>
+
           {error ? (
             <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#9A4A32", margin: 0 }}>
               {error}
