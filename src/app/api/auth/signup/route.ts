@@ -24,6 +24,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "An account with this email already exists" }, { status: 409 });
   }
 
+  if (!existing) {
+    const [invite] = await db
+      .select()
+      .from(projectMembers)
+      .where(eq(projectMembers.email, email));
+    if (!invite) {
+      return NextResponse.json({ error: "Registration is by invitation only. Ask a project owner to invite you." }, { status: 403 });
+    }
+  }
+
   const passwordHash = await hash(password, 12);
 
   if (existing) {

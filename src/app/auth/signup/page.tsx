@@ -148,7 +148,11 @@ function SignUpForm() {
           </button>
         </form>
 
-        <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#6E6656", marginTop: 20, textAlign: "center" }}>
+        <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: "#9A4A32", marginTop: 16, textAlign: "center", lineHeight: 1.5 }}>
+          Registration is by invitation only. Ask a project owner to invite you.
+        </p>
+
+        <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#6E6656", marginTop: 12, textAlign: "center" }}>
           Already have an account?{" "}
           <Link href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`} style={{ color: "#A9762E", textDecoration: "underline" }}>
             Sign in

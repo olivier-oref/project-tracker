@@ -46,6 +46,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         .from(users)
         .where(eq(users.email, user.email));
 
+      if (!existingUser) {
+        const [invite] = await db
+          .select()
+          .from(projectMembers)
+          .where(eq(projectMembers.email, user.email));
+        if (!invite) return false;
+      }
+
       const dbUser =
         existingUser ??
         (
