@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { InviteForm } from "@/components/members/invite-form";
 
@@ -163,6 +163,10 @@ export function MembersPanel({
           })}
         </div>
 
+        <div className="border-t border-line p-4">
+          <ProjectInviteLink projectId={projectId} />
+        </div>
+
         {isOwner ? (
           <div className="border-t border-line p-4">
             <InviteForm projectId={projectId} />
@@ -170,5 +174,53 @@ export function MembersPanel({
         ) : null}
       </aside>
     </>
+  );
+}
+
+function ProjectInviteLink({ projectId }: { projectId: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const link = typeof window !== "undefined"
+    ? `${window.location.origin}/project/${projectId}`
+    : `/project/${projectId}`;
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch {
+      const input = document.createElement("input");
+      input.value = link;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      document.body.removeChild(input);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [link]);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="font-mono text-[10px] uppercase tracking-wide text-gold">
+        Project link
+      </p>
+      <div className="flex gap-2">
+        <input
+          readOnly
+          value={link}
+          className="h-9 flex-1 min-w-0 rounded border border-line bg-paper-2 px-2 font-mono text-[10px] text-muted outline-none"
+        />
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="h-9 shrink-0 rounded border border-line px-3 font-mono text-[10px] uppercase tracking-wide text-navy hover:bg-paper-3"
+        >
+          {copied ? "Copied" : "Copy"}
+        </button>
+      </div>
+      <p className="font-mono text-[10px] text-muted">
+        Add members by email above, then share this link. They sign in and land directly in the project.
+      </p>
+    </div>
   );
 }
