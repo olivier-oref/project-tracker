@@ -44,6 +44,18 @@ export function MembersPanel({
     });
   }
 
+  function handleTransferOwnership(memberId: string, memberName: string) {
+    if (!confirm(`Transfer project ownership to ${memberName}? You will become a regular member.`)) return;
+    startTransition(async () => {
+      await fetch(`/api/projects/${projectId}/members`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ memberId, role: "owner" }),
+      });
+      router.refresh();
+    });
+  }
+
   function handleRename(memberId: string, name: string) {
     if (!name.trim()) return;
     startTransition(async () => {
@@ -126,6 +138,15 @@ export function MembersPanel({
                     {member.email}
                   </p>
                 </div>
+                {isOwner && member.role !== "owner" && member.joinedAt ? (
+                  <button
+                    type="button"
+                    onClick={() => handleTransferOwnership(member.id, displayName)}
+                    className="shrink-0 rounded-[2px] border border-line px-2 py-1 font-mono text-[10px] uppercase tracking-wide text-navy hover:bg-paper-3"
+                  >
+                    Make owner
+                  </button>
+                ) : null}
                 {canRemove ? (
                   <button
                     type="button"

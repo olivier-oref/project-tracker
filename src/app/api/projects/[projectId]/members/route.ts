@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { eq, and, count } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { verifyProjectMembership } from "@/lib/project-auth";
-import { projectMembers, users } from "../../../../../../drizzle/schema";
+import { projectMembers, users, projects } from "../../../../../../drizzle/schema";
 import { getNextColor } from "@/lib/colors";
 
 async function findOrCreateUser(email: string) {
@@ -118,10 +118,9 @@ export async function PATCH(
 
   const body = await request.json();
   const memberId = typeof body.memberId === "string" ? body.memberId : "";
-  const name = typeof body.name === "string" ? body.name.trim() : "";
 
-  if (!memberId || !name) {
-    return NextResponse.json({ error: "memberId and name are required" }, { status: 400 });
+  if (!memberId) {
+    return NextResponse.json({ error: "memberId is required" }, { status: 400 });
   }
 
   const [target] = await db
@@ -133,6 +132,27 @@ export async function PATCH(
 
   if (!target || !target.userId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  if (typeof body.role === "string" && body.role === "owner") {
+    if (auth.membership.role !== "owner") {
+      return NextResponse.json({ error: "Only the owner can transfer ownership" }, { status: 403 });
+    }
+    await db.update(projectMembers)
+      .set({ role: "owner" })
+      .where(eq(projectMembers.id, memberId));
+    await db.update(projectMembers)
+      .set({ role: "member" })
+      .where(eq(projectMembers.id, auth.membership.id));
+    await db.update(projects)
+      .set({ ownerId: target.userId })
+      .where(eq(projects.id, projectId));
+    return NextResponse.json({ success: true });
+  }
+
+  const name = typeof body.name === "string" ? body.name.trim() : "";
+  if (!name) {
+    return NextResponse.json({ error: "name is required" }, { status: 400 });
   }
 
   await db.update(users).set({ name }).where(eq(users.id, target.userId));

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ConfirmDeleteModal } from "./confirm-delete-modal";
 
@@ -20,7 +21,10 @@ export type ProjectCardMetrics = {
 export function ProjectCard({ project }: { project: ProjectCardMetrics }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState(project.title);
   const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -49,14 +53,26 @@ export function ProjectCard({ project }: { project: ProjectCardMetrics }) {
         </button>
 
         {menuOpen ? (
-          <div className="absolute right-0 top-full z-10 mt-1 min-w-[160px] rounded-lg border border-line bg-paper shadow-lg">
+          <div className="absolute right-0 top-full z-10 mt-1 min-w-[160px] overflow-hidden rounded-lg border border-line bg-paper shadow-lg">
+            {project.isOwner ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setRenaming(true);
+                }}
+                className="min-h-[44px] w-full px-4 text-left font-mono text-xs uppercase tracking-wider text-ink hover:bg-paper-3"
+              >
+                Rename
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={() => {
                 setMenuOpen(false);
                 setModalOpen(true);
               }}
-              className="min-h-[44px] w-full rounded-lg px-4 text-left font-mono text-xs uppercase tracking-wider text-rust hover:bg-paper-3"
+              className="min-h-[44px] w-full px-4 text-left font-mono text-xs uppercase tracking-wider text-rust hover:bg-paper-3"
             >
               {project.isOwner ? "Delete project" : "Leave project"}
             </button>
@@ -64,9 +80,50 @@ export function ProjectCard({ project }: { project: ProjectCardMetrics }) {
         ) : null}
       </div>
 
-      <Link href={`/project/${project.id}`} className="flex flex-col gap-4">
+      {renaming ? (
+        <div className="flex gap-2 pr-14">
+          <input
+            autoFocus
+            className="flex-1 rounded border border-line bg-paper px-2 py-1 font-serif text-xl text-navy outline-none focus:border-gold"
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onKeyDown={async (e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const trimmed = renameValue.trim();
+                if (trimmed && trimmed !== project.title) {
+                  await fetch(`/api/projects/${project.id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ title: trimmed }),
+                  });
+                  router.refresh();
+                }
+                setRenaming(false);
+              } else if (e.key === "Escape") {
+                setRenameValue(project.title);
+                setRenaming(false);
+              }
+            }}
+            onBlur={async () => {
+              const trimmed = renameValue.trim();
+              if (trimmed && trimmed !== project.title) {
+                await fetch(`/api/projects/${project.id}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ title: trimmed }),
+                });
+                router.refresh();
+              }
+              setRenaming(false);
+            }}
+          />
+        </div>
+      ) : null}
+
+      <Link href={`/project/${project.id}`} className={`flex flex-col gap-4${renaming ? " pointer-events-none" : ""}`}>
         <div>
-          <h2 className="font-serif text-xl text-navy pr-8">{project.title}</h2>
+          <h2 className="font-serif text-xl text-navy pr-8">{renaming ? renameValue : project.title}</h2>
           {project.subtitle ? (
             <p className="mt-1 font-mono text-xs uppercase tracking-wider text-gold">
               {project.subtitle}
