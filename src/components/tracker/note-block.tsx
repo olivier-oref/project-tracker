@@ -161,7 +161,7 @@ export function NoteBlock({
   return (
     <div className="notes">
       {sorted.length > 0 && (
-        <NoteItem note={sorted[0]} older={false} projectId={projectId} taskId={taskId} members={members} onSave={onSave} />
+        <NoteItem key={sorted[0].id} note={sorted[0]} older={false} projectId={projectId} taskId={taskId} members={members} onSave={onSave} />
       )}
       {sorted.length > 1 && (
         <button
