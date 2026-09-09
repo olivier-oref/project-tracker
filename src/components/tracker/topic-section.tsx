@@ -36,6 +36,7 @@ export function TopicSection({
 
   const pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
   const count = isFiltering ? `${tasks.length} of ${totalCount} shown` : `${doneCount} / ${totalCount}`;
+  const allDone = totalCount > 0 && doneCount === totalCount;
 
   async function addTask() {
     const title = newTaskTitle.trim();
@@ -88,10 +89,11 @@ export function TopicSection({
           contentEditable
           suppressContentEditableWarning
           onBlur={renameSection}
+          style={allDone ? { color: "var(--muted)", textDecoration: "line-through", textDecorationColor: "var(--line-2)" } : undefined}
         >
           {topic.name}
         </h2>
-        <span className="topic-count">{count}</span>
+        <span className="topic-count" style={allDone ? { color: "var(--green)" } : undefined}>{count}</span>
         <button type="button" className="btn mini" onClick={focusAdd}>
           + Task
         </button>
