@@ -132,7 +132,7 @@ test.describe('phases', () => {
 
     await page.getByLabel('New task').fill('Do not lose me');
     await page.getByRole('button', { name: 'Add', exact: true }).click();
-    await expect(page.getByRole('alert')).toContainText('Not added');
+    await expect(page.getByRole('alert').filter({ hasText: 'Not added' })).toBeVisible();
     await expect(page.getByLabel('New task')).toHaveValue('Do not lose me');
     await page.unrouteAll({ behavior: 'ignoreErrors' });
   });
