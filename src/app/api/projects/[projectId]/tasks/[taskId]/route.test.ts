@@ -8,6 +8,10 @@ const mockTouch = jest.fn();
 jest.mock("@/lib/project-auth", () => ({
   verifyProjectMembership: () => mockVerify(),
   touchProject: (id: string) => mockTouch(id),
+  projectMemberNames: async () => [
+    { id: "u1", name: "Olivier Marschalik" },
+    { id: "u2", name: "felipe" },
+  ],
 }));
 jest.mock("@/lib/db", () => {
   const where = async () => selectResults.shift() ?? [];
@@ -31,7 +35,6 @@ const params = { params: Promise.resolve({ projectId: "p1", taskId: "t1" }) };
 const patch = (body: unknown) =>
   PATCH(new Request("http://test/api/projects/p1/tasks/t1", { method: "PATCH", body: JSON.stringify(body) }), params);
 const taskRow = [{ task: { id: "t1", sectionId: "s1" }, section: { id: "s1", projectId: "p1" } }];
-const memberRows = [{ id: "u1", name: "Olivier Marschalik", email: "o@x.com" }, { id: "u2", name: null, email: "felipe@x.com" }];
 
 beforeEach(() => {
   selectResults.length = 0;
@@ -42,28 +45,41 @@ beforeEach(() => {
 
 describe("PATCH task owner", () => {
   it("links a member typed by name (any case) and clears the free-text name", async () => {
-    selectResults.push(taskRow, memberRows);
+    selectResults.push(taskRow);
     const res = await patch({ owner: "olivier marschalik" });
     expect(res.status).toBe(200);
     expect(updates[0]).toMatchObject({ ownerId: "u1", ownerName: null });
   });
 
-  it("matches a member without a profile name by their email prefix", async () => {
-    selectResults.push(taskRow, memberRows);
+  it("matches a member shown by their email prefix", async () => {
+    selectResults.push(taskRow);
     await patch({ owner: "Felipe" });
     expect(updates[0]).toMatchObject({ ownerId: "u2", ownerName: null });
   });
 
   it("keeps a non-member name as typed and clears the member link", async () => {
-    selectResults.push(taskRow, memberRows);
+    selectResults.push(taskRow);
     await patch({ owner: " Dana from Legal " });
     expect(updates[0]).toMatchObject({ ownerId: null, ownerName: "Dana from Legal" });
   });
 
   it("clears both for an empty owner", async () => {
-    selectResults.push(taskRow, memberRows);
+    selectResults.push(taskRow);
     await patch({ owner: "" });
     expect(updates[0]).toMatchObject({ ownerId: null, ownerName: null });
+  });
+
+  it("rejects a non-text owner instead of clearing it", async () => {
+    selectResults.push(taskRow);
+    expect((await patch({ owner: 42 })).status).toBe(400);
+    expect(updates).toEqual([]);
+  });
+
+  it("legacy ownerId must be a member of this project", async () => {
+    selectResults.push(taskRow);
+    expect((await patch({ ownerId: "someone-else" })).status).toBe(400);
+    expect(updates).toEqual([]);
+    expect(mockTouch).not.toHaveBeenCalled();
   });
 
   it("legacy ownerId still works and clears any free-text name", async () => {

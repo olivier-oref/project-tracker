@@ -176,6 +176,7 @@ export function TaskRowNew({
               aria-label="Owner"
               defaultValue={ownerText}
               list={ownersListId}
+              maxLength={80}
               autoComplete="off"
               placeholder="Unassigned"
               onChange={onOwnerChange}

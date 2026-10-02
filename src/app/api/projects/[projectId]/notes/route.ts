@@ -19,8 +19,7 @@ export async function POST(
   const content = typeof body.content === "string" ? body.content.trim() : "";
 
   if (!taskId) {
-    await touchProject(projectId);
-  return NextResponse.json(
+    return NextResponse.json(
       { error: "taskId is required" },
       { status: 400 }
     );

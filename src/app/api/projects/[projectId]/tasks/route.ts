@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq, and, max } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { verifyProjectMembership, touchProject } from "@/lib/project-auth";
+import { verifyProjectMembership, touchProject, projectMemberNames } from "@/lib/project-auth";
 import { sections, tasks } from "../../../../../../drizzle/schema";
 
 export async function POST(
@@ -19,8 +19,7 @@ export async function POST(
   const title = typeof body.title === "string" ? body.title.trim() : "";
 
   if (!sectionId || !title) {
-    await touchProject(projectId);
-  return NextResponse.json(
+    return NextResponse.json(
       { error: "sectionId and title are required" },
       { status: 400 }
     );
@@ -37,6 +36,9 @@ export async function POST(
 
   const status = typeof body.status === "string" ? body.status : "not_started";
   const ownerId = typeof body.ownerId === "string" ? body.ownerId : null;
+  if (ownerId && !(await projectMemberNames(projectId)).some((m) => m.id === ownerId)) {
+    return NextResponse.json({ error: "Owner is not a project member" }, { status: 400 });
+  }
   const dueDate = typeof body.dueDate === "string" ? body.dueDate : null;
   const phase = typeof body.phase === "string" ? body.phase : null;
 

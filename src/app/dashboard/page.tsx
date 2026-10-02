@@ -45,7 +45,7 @@ export default async function DashboardPage() {
           blocked: sql<number>`count(*) filter (where ${tasks.status} = 'blocked')`.mapWith(
             Number
           ),
-          unassigned: sql<number>`count(*) filter (where ${tasks.ownerId} is null)`.mapWith(
+          unassigned: sql<number>`count(*) filter (where ${tasks.ownerId} is null and ${tasks.ownerName} is null)`.mapWith(
             Number
           ),
         })

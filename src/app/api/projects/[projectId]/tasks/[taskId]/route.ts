@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { eq, and, max } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { verifyProjectMembership, touchProject } from "@/lib/project-auth";
+import { verifyProjectMembership, touchProject, projectMemberNames } from "@/lib/project-auth";
 import { resolveOwner } from "@/lib/owners";
-import { projectMembers, sections, tasks, users } from "../../../../../../../drizzle/schema";
+import { sections, tasks } from "../../../../../../../drizzle/schema";
 
 async function getTaskInProject(projectId: string, taskId: string) {
   const [row] = await db
@@ -13,16 +13,6 @@ async function getTaskInProject(projectId: string, taskId: string) {
     .where(and(eq(tasks.id, taskId), eq(sections.projectId, projectId)));
 
   return row;
-}
-
-/** Members who have an account, with the name the board shows for them. */
-async function projectMemberNames(projectId: string) {
-  const rows = await db
-    .select({ id: projectMembers.userId, name: users.name, email: projectMembers.email })
-    .from(projectMembers)
-    .innerJoin(users, eq(users.id, projectMembers.userId))
-    .where(eq(projectMembers.projectId, projectId));
-  return rows.map((r) => ({ id: r.id as string, name: r.name ?? r.email.split("@")[0] }));
 }
 
 export async function PATCH(
@@ -59,12 +49,19 @@ export async function PATCH(
   }
 
   if (body.owner !== undefined) {
+    if (body.owner !== null && typeof body.owner !== "string") {
+      return NextResponse.json({ error: "Invalid owner" }, { status: 400 });
+    }
     // What the user typed: a member's name links the member, any other name is kept as typed.
-    const owner = resolveOwner(typeof body.owner === "string" ? body.owner : null, await projectMemberNames(projectId));
+    const owner = resolveOwner(body.owner, await projectMemberNames(projectId));
     updates.ownerId = owner.ownerId;
     updates.ownerName = owner.ownerName;
   } else if (body.ownerId !== undefined) {
-    updates.ownerId = typeof body.ownerId === "string" ? body.ownerId : null;
+    const ownerId = typeof body.ownerId === "string" ? body.ownerId : null;
+    if (ownerId && !(await projectMemberNames(projectId)).some((m) => m.id === ownerId)) {
+      return NextResponse.json({ error: "Owner is not a project member" }, { status: 400 });
+    }
+    updates.ownerId = ownerId;
     updates.ownerName = null;
   }
 
