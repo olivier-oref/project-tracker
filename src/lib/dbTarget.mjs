@@ -9,8 +9,8 @@
 //            or the proxy host+port pair's host. Leave a key empty ('') if that environment doesn't exist.
 export const DB_HOSTS = {
   production: 'ep-morning-silence-aufzhvx1',
-  dev: '', // TODO: Neon dev branch endpoint id
-  e2e: '', // TODO: Neon e2e branch endpoint id
+  dev: 'ep-dark-hill-au3dsavk',
+  e2e: 'ep-dark-glade-aufmp4w7',
 };
 
 /** 'production' | 'dev' | 'e2e' | 'unknown' for a connection string (never throws, never echoes it). */
