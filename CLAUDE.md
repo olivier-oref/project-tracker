@@ -60,6 +60,9 @@ blockers.
   the production database outside the production deployment; deliberate production scripts set
   `ALLOW_PROD_DB=1` after a snapshot.
 - Flag it to Olivier when a branch passes ~25 commits, ~40 files or ~5 days: split or merge.
+- When a PR's Vercel preview is ready, point the review domain at it so Olivier can comment with
+  Faster Fixes: `vercel alias set <preview-url> dev.projects.orefconsulting.com`. Never alias a
+  production deployment there (it uses the production database).
 
 ## Testing mechanics
 
