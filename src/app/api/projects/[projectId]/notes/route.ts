@@ -11,8 +11,7 @@ export async function POST(
   const { projectId } = await params;
   const auth = await verifyProjectMembership(projectId);
   if ("error" in auth) {
-    touchProject(projectId);
-  return NextResponse.json({ error: auth.error }, { status: auth.status });
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   const body = await request.json();
@@ -20,7 +19,7 @@ export async function POST(
   const content = typeof body.content === "string" ? body.content.trim() : "";
 
   if (!taskId) {
-    touchProject(projectId);
+    await touchProject(projectId);
   return NextResponse.json(
       { error: "taskId is required" },
       { status: 400 }
@@ -34,8 +33,7 @@ export async function POST(
     .where(and(eq(tasks.id, taskId), eq(sections.projectId, projectId)));
 
   if (!taskRow) {
-    touchProject(projectId);
-  return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }
 
   const [note] = await db
@@ -48,6 +46,6 @@ export async function POST(
     .from(users)
     .where(eq(users.id, auth.userId));
 
-  touchProject(projectId);
+  await touchProject(projectId);
   return NextResponse.json({ ...note, author: author ?? null });
 }

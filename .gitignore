@@ -50,3 +50,6 @@ next-env.d.ts
 /certificates/
 .e2e-warm.pid
 .e2e-warm.log
+
+# MCP config (holds the Faster Fixes agent token)
+.mcp.json

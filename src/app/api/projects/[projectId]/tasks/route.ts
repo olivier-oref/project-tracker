@@ -11,8 +11,7 @@ export async function POST(
   const { projectId } = await params;
   const auth = await verifyProjectMembership(projectId);
   if ("error" in auth) {
-    touchProject(projectId);
-  return NextResponse.json({ error: auth.error }, { status: auth.status });
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   const body = await request.json();
@@ -20,7 +19,7 @@ export async function POST(
   const title = typeof body.title === "string" ? body.title.trim() : "";
 
   if (!sectionId || !title) {
-    touchProject(projectId);
+    await touchProject(projectId);
   return NextResponse.json(
       { error: "sectionId and title are required" },
       { status: 400 }
@@ -33,8 +32,7 @@ export async function POST(
     .where(and(eq(sections.id, sectionId), eq(sections.projectId, projectId)));
 
   if (!section) {
-    touchProject(projectId);
-  return NextResponse.json({ error: "Section not found" }, { status: 404 });
+    return NextResponse.json({ error: "Section not found" }, { status: 404 });
   }
 
   const status = typeof body.status === "string" ? body.status : "not_started";
@@ -62,6 +60,6 @@ export async function POST(
     })
     .returning();
 
-  touchProject(projectId);
+  await touchProject(projectId);
   return NextResponse.json(task);
 }

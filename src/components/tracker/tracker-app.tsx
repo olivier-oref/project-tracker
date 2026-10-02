@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { TopicSection } from "@/components/tracker/topic-section";
 import { TaskRowNew, type FlatTask } from "@/components/tracker/task-row-new";
+import { ownerKey, ownerLabel, ownerSuggestions } from "@/lib/owners";
 import type { MemberInfo, NoteData } from "@/components/tracker/note-block";
 import { StripBar } from "@/components/tracker/strip-bar";
 import { UsersLegend } from "@/components/tracker/users-legend";
@@ -102,6 +103,21 @@ export function TrackerApp({
     [tasks]
   );
 
+  // Owner filter: members, then outsiders who own at least one task.
+  const ownerFilterOptions = useMemo(() => {
+    const options = members.map((m) => ({ key: `u:${m.id}`, label: m.name }));
+    const seen = new Set(options.map((o) => o.key));
+    for (const task of tasks) {
+      const key = ownerKey(task);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      options.push({ key, label: ownerLabel(task, members) });
+    }
+    return options;
+  }, [members, tasks]);
+  const suggestions = useMemo(() => ownerSuggestions(members, tasks), [members, tasks]);
+  const ownersListId = `owners-${projectId}`;
+
   const filterText = searchQuery.trim().toLowerCase();
 
   function passes(task: FlatTask): boolean {
@@ -111,13 +127,12 @@ export function TrackerApp({
     } else if (filterStatus && task.status !== filterStatus) {
       return false;
     }
-    if (filterOwner && task.ownerId !== filterOwner) return false;
+    if (filterOwner && ownerKey(task) !== filterOwner) return false;
     if (filterText) {
-      const owner = members.find((m) => m.id === task.ownerId);
       const notesText = (notesByTask[task.id] ?? [])
         .map((n) => `${n.content} ${n.authorName ?? ""}`)
         .join(" ");
-      const hay = `${task.title} ${notesText} ${owner?.name ?? ""}`.toLowerCase();
+      const hay = `${task.title} ${notesText} ${ownerLabel(task, members)}`.toLowerCase();
       if (hay.indexOf(filterText) === -1) return false;
     }
     return true;
@@ -195,6 +210,7 @@ export function TrackerApp({
         isFiltering={isFiltering}
         notesByTask={notesByTask}
         members={members}
+        ownersListId={ownersListId}
         phases={phases}
         defaultPhase={filterPhase}
         onSave={onSave}
@@ -209,25 +225,28 @@ export function TrackerApp({
     const sectionById = new Map(sections.map((s) => [s.id, s.title]));
     const groups = new Map<string, FlatTask[]>();
     for (const task of rows) {
-      const key = task.ownerId ?? "__unassigned";
+      const key = ownerKey(task) || "__unassigned";
       const existing = groups.get(key) ?? [];
       existing.push(task);
       groups.set(key, existing);
     }
 
+    // Members (coloured) and outsiders (by name) each get a group; unassigned goes last.
     const entries = Array.from(groups.entries()).map(([key, groupTasks]) => {
-      const owner = key === "__unassigned" ? null : members.find((m) => m.id === key) ?? null;
-      return { key, owner, tasks: groupTasks };
+      const first = groupTasks[0];
+      const member = first.ownerId ? members.find((m) => m.id === first.ownerId) ?? null : null;
+      const name = key === "__unassigned" ? null : ownerLabel(first, members) || null;
+      return { key, member, name, tasks: groupTasks };
     });
 
     entries.sort((a, b) => {
-      if (!a.owner && !b.owner) return 0;
-      if (!a.owner) return 1;
-      if (!b.owner) return -1;
-      return a.owner.name.localeCompare(b.owner.name);
+      if (!a.name && !b.name) return 0;
+      if (!a.name) return 1;
+      if (!b.name) return -1;
+      return a.name.localeCompare(b.name);
     });
 
-    return entries.map(({ key, owner, tasks: groupTasks }) => {
+    return entries.map(({ key, member, name, tasks: groupTasks }) => {
       const open = groupTasks.filter((t) => t.status !== "done").length;
       const sorted = groupTasks.slice().sort((a, b) => {
         const ad = a.dueDate || "9999-99-99";
@@ -235,11 +254,11 @@ export function TrackerApp({
         if (ad !== bd) return ad < bd ? -1 : 1;
         return (sectionById.get(a.sectionId) ?? "").localeCompare(sectionById.get(b.sectionId) ?? "");
       });
-      const style = owner ? ({ "--ow": owner.color, "--owbg": `${owner.color}24` } as React.CSSProperties) : undefined;
+      const style = member ? ({ "--ow": member.color, "--owbg": `${member.color}24` } as React.CSSProperties) : undefined;
       return (
         <div key={key}>
-          <div className={`divider-owner${owner ? "" : " unassigned"}`} style={style}>
-            <b>{owner?.name ?? "Unassigned"}</b>
+          <div className={`divider-owner${name ? "" : " unassigned"}`} style={style}>
+            <b>{name ?? "Unassigned"}</b>
             <span className="n">
               {open} open of {groupTasks.length}
             </span>
@@ -251,6 +270,7 @@ export function TrackerApp({
               task={task}
               notes={notesByTask[task.id] ?? []}
               members={members}
+              ownersListId={ownersListId}
               phases={phases}
               topicName={sectionById.get(task.sectionId)}
               onSave={onSave}
@@ -292,6 +312,7 @@ export function TrackerApp({
           task={task}
           notes={notesByTask[task.id] ?? []}
           members={members}
+          ownersListId={ownersListId}
           phases={phases}
           topicName={sectionById.get(task.sectionId)}
           onSave={onSave}
@@ -368,9 +389,9 @@ export function TrackerApp({
             onChange={(e) => setFilterOwner(e.target.value)}
           >
             <option value="">All owners</option>
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
+            {ownerFilterOptions.map((o) => (
+              <option key={o.key} value={o.key}>
+                {o.label}
               </option>
             ))}
           </select>
@@ -386,13 +407,20 @@ export function TrackerApp({
 
           <span className="spacer" />
           <span className={`saving${isPending ? " on" : ""}`}>Saving</span>
-          <button type="button" className="btn" onClick={downloadBackup}>
-            Backup
-          </button>
-          <button type="button" className="btn" onClick={exportHtml}>
-            Export HTML
-          </button>
+          <span className="actions">
+            <button type="button" className="btn" onClick={downloadBackup}>
+              Backup
+            </button>
+            <button type="button" className="btn" onClick={exportHtml}>
+              Export HTML
+            </button>
+          </span>
         </div>
+        <datalist id={ownersListId}>
+          {suggestions.map((name) => (
+            <option key={name} value={name} />
+          ))}
+        </datalist>
 
         <StripBar metrics={metrics} />
         <UsersLegend members={members} />

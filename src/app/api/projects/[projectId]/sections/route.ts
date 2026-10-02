@@ -11,16 +11,14 @@ export async function POST(
   const { projectId } = await params;
   const auth = await verifyProjectMembership(projectId);
   if ("error" in auth) {
-    touchProject(projectId);
-  return NextResponse.json({ error: auth.error }, { status: auth.status });
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   const body = await request.json();
   const title = typeof body.title === "string" ? body.title.trim() : "";
 
   if (!title) {
-    touchProject(projectId);
-  return NextResponse.json({ error: "Title is required" }, { status: 400 });
+    return NextResponse.json({ error: "Title is required" }, { status: 400 });
   }
 
   const [{ value }] = await db
@@ -35,6 +33,6 @@ export async function POST(
     .values({ projectId, title, sortOrder })
     .returning();
 
-  touchProject(projectId);
+  await touchProject(projectId);
   return NextResponse.json(section);
 }

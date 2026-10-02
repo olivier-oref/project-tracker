@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { NoteBlock, type MemberInfo, type NoteData } from "@/components/tracker/note-block";
+import { ownerLabel, resolveOwner } from "@/lib/owners";
 
 export type FlatTask = {
   id: string;
@@ -9,6 +10,7 @@ export type FlatTask = {
   title: string;
   status: string;
   ownerId: string | null;
+  ownerName: string | null;
   dueDate: string | null;
   phase: string | null;
 };
@@ -56,6 +58,7 @@ export function TaskRowNew({
   task,
   notes,
   members,
+  ownersListId,
   phases,
   topicName,
   onSave,
@@ -64,6 +67,7 @@ export function TaskRowNew({
   task: FlatTask;
   notes: NoteData[];
   members: MemberInfo[];
+  ownersListId: string;
   phases: string[];
   topicName?: string;
   onSave: () => void;
@@ -73,6 +77,7 @@ export function TaskRowNew({
   const done = task.status === "done";
   const uiStatus = STATUS_TO_UI[task.status] ?? "open";
   const owner = members.find((m) => m.id === task.ownerId);
+  const ownerText = ownerLabel(task, members);
 
   async function patchTask(body: Record<string, unknown>) {
     await fetch(`/api/projects/${projectId}/tasks/${task.id}`, {
@@ -102,12 +107,12 @@ export function TaskRowNew({
   }
 
   function onOwnerChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const name = e.target.value.trim();
-    const match = members.find((m) => m.name.toLowerCase() === name.toLowerCase());
+    const match = resolveOwner(e.target.value, members).ownerId;
+    const member = members.find((m) => m.id === match);
     const wrap = e.target.parentElement;
-    if (wrap && match) {
-      wrap.style.setProperty("--o", match.color);
-      wrap.style.setProperty("--obg", tint(match.color, 0.14));
+    if (wrap && member) {
+      wrap.style.setProperty("--o", member.color);
+      wrap.style.setProperty("--obg", tint(member.color, 0.14));
     } else if (wrap) {
       wrap.style.removeProperty("--o");
       wrap.style.removeProperty("--obg");
@@ -115,9 +120,9 @@ export function TaskRowNew({
   }
 
   function onOwnerBlur(e: React.FocusEvent<HTMLInputElement>) {
-    const name = e.target.value.trim();
-    const match = members.find((m) => m.name.toLowerCase() === name.toLowerCase());
-    patchTask({ ownerId: match ? match.id : null });
+    // Saved as typed: a member's name links the member, any other name is kept (the server decides).
+    if (e.target.value.trim() === ownerText) return;
+    patchTask({ owner: e.target.value });
   }
 
   function onDueChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -169,10 +174,15 @@ export function TaskRowNew({
             <input
               className="owner"
               aria-label="Owner"
-              defaultValue={owner?.name ?? ""}
+              defaultValue={ownerText}
+              list={ownersListId}
+              autoComplete="off"
               placeholder="Unassigned"
               onChange={onOwnerChange}
               onBlur={onOwnerBlur}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.currentTarget.blur();
+              }}
             />
           </span>
           <input

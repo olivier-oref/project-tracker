@@ -22,9 +22,7 @@ export async function verifyProjectMembership(projectId: string) {
   return { session, membership, userId: session.user.id } as const;
 }
 
-export function touchProject(projectId: string) {
-  db.update(projects)
-    .set({ updatedAt: new Date() })
-    .where(eq(projects.id, projectId))
-    .then(() => {});
+/** Bumps the project's updatedAt so open boards refetch. Call only after a successful write. */
+export async function touchProject(projectId: string) {
+  await db.update(projects).set({ updatedAt: new Date() }).where(eq(projects.id, projectId));
 }
