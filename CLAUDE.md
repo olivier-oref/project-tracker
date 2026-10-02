@@ -87,7 +87,6 @@ Parts of the standard this project deliberately skips (date, what, why). Don't r
 
 - 2026-10-02: **Neon Auth** — keep NextAuth (Google + email/password, invite-only). It works and was
   just hardened; migrating would rewrite sign-in/sign-up/invites and move live users for no user gain.
-- 2026-10-02: **E2e not yet set up** — planned as a follow-up PR once the `e2e` Neon branch exists.
 
 ## Anti-ratchet
 

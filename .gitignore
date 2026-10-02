@@ -41,3 +41,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .claude/settings.local.json
+
+# e2e
+/playwright-report/
+/test-results/
+/.next-e2e/
+/e2e/.auth/
+/certificates/
+.e2e-warm.pid
+.e2e-warm.log
