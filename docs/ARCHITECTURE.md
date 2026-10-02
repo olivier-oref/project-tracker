@@ -9,6 +9,7 @@ members, exportable as a styled HTML status report.
 |---|---|---|---|
 | Production | Vercel Production (`main`) | `main` (`ep-morning-silence-aufzhvx1`) | only deployment allowed to touch it |
 | Preview | Vercel Preview (PR branches) | `dev` (`ep-dark-hill-au3dsavk`) | Preview-scoped `DATABASE_URL` (Secret); Neon integration connected to Production only |
+| Review | `dev.projects.orefconsulting.com` | `dev` | Vercel domain pinned to git branch `dev` (never production); a PR preview is aliased onto it with `vercel alias set <preview-url> dev.projects.orefconsulting.com` so Faster Fixes accepts comments there |
 | Local | `npm run dev` | `dev` (`ep-dark-hill-au3dsavk`) | `.env.local` |
 | E2e | Playwright | `e2e` (`ep-dark-glade-aufmp4w7`) | `.env.test.local` |
 
@@ -35,6 +36,7 @@ NextAuth v5 (JWT sessions) · Resend (invite email) · Tailwind 4 · Jest (unit)
 | Project API | `src/app/api/projects/**` | CRUD for projects, sections, tasks, notes, members; `version` returns `updatedAt` for change polling; `export` returns HTML |
 | Export | `src/lib/export.ts` | renders the standalone HTML status report (all user text HTML-escaped) |
 | Email | `src/lib/email.ts` | invite emails via Resend (sender domain not yet verified) |
+| Feedback widget | `src/app/layout.tsx` | Faster Fixes `FeedbackProvider` (project `proj_80a273e6ef05133c46ad7c92`, domain `projects.orefconsulting.com`); mounts only after a `?ff_token=` reviewer link, otherwise inert. Faster Fixes accepts its registered domain, any subdomain, and localhost |
 | UI | `src/app/dashboard`, `src/app/project/[projectId]`, `src/components/**` | dashboard of projects; tracker view with sections, task rows, notes, members panel |
 | DB guard | `src/lib/dbTarget.mjs` | refuses the production DB outside production |
 
