@@ -33,12 +33,12 @@
 - [ ] Comment threads on tasks (separate from notes)
 
 ## Testing
-- [ ] Unit tests for API routes (project CRUD, task CRUD, auth, membership)
+- [ ] Unit tests for API routes (done: signup, membership check; todo: project/task CRUD)
 - [ ] E2E tests (sign up → create project → invite → edit → export)
 - [ ] Load testing for heartbeat endpoint at scale
 
 ## Infrastructure
-- [ ] CI/CD pipeline (run tests on PR, auto-deploy on merge)
+- [x] CI (unit tests on every PR; Vercel auto-deploys on merge)
 - [ ] Database backups / point-in-time recovery
 - [ ] Rate limiting on auth endpoints
 - [ ] CSRF protection review

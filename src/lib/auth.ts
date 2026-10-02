@@ -4,6 +4,7 @@ import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { eq, and, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { mayJoin } from "@/lib/signup-rules";
 import { users, projectMembers } from "../../drizzle/schema";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -52,7 +53,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           .select()
           .from(projectMembers)
           .where(eq(projectMembers.email, user.email));
-        if (!invite) return false;
+        if (!mayJoin(existingUser, invite)) return false;
       }
 
       const dbUser =

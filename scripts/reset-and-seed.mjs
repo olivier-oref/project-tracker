@@ -1,7 +1,9 @@
 import { config } from "dotenv";
 import { neon } from "@neondatabase/serverless";
+import { assertDbTarget } from "../src/lib/dbTarget.mjs";
 
 config({ path: ".env.local" });
+assertDbTarget(process.env.DATABASE_URL);
 const sql = neon(process.env.DATABASE_URL);
 
 // Get Olivier's user

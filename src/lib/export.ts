@@ -25,7 +25,7 @@ const STATUS_CLASS: Record<string, string> = {
   done: "st-done",
 };
 
-function escapeHtml(value: string): string {
+export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -33,7 +33,7 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function formatDueDate(dueDate: string | null): string {
+export function formatDueDate(dueDate: string | null): string {
   if (!dueDate) return '<span class="nodate">No date</span>';
   const formatted = new Intl.DateTimeFormat("en-US", {
     weekday: "short",

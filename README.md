@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Project Tracker
 
-## Getting Started
+Invite-only project tracker: projects split into workstreams of tasks (status, owner, due date,
+phase) with notes, shared with invited members and exportable as an HTML status report.
+Deployed on Vercel; data in Neon Postgres.
 
-First, run the development server:
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # fill in values; DATABASE_URL must point at the Neon `dev` branch
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Env vars (names only): `DATABASE_URL` (only — `POSTGRES_URL` is ignored), `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
+`AUTH_SECRET`, `NEXTAUTH_URL`, `RESEND_API_KEY`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environments
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Production, previews/local and e2e use separate Neon branches. `src/lib/dbTarget.mjs` refuses the
+production database anywhere except the production deployment; deliberate production scripts
+(migrations, backfills) take a snapshot first and run with `ALLOW_PROD_DB=1`. Details:
+`docs/ARCHITECTURE.md`.
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Command | What |
+|---|---|
+| `npm run dev` / `build` / `start` | Next.js |
+| `npm test` | Jest unit tests (also the `unit` CI check) |
+| `npm run lint` | ESLint |
+| `npx drizzle-kit migrate` | apply migrations to the database in `.env.local` |
+| `node scripts/reset-and-seed.mjs` | **wipes** and reseeds the target database (dev only) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Docs
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`docs/ARCHITECTURE.md` (components, flows, data model) · `docs/ADR.md` (decisions) ·
+`CLAUDE.md` (project rules: risk tiers, testing, branches, opt-outs) · `TODO.md` (open items).
