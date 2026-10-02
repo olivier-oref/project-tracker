@@ -28,3 +28,8 @@ build step.
 **Rejected.** Relying on env-var discipline alone (that is how local dev ended up on production).
 
 **Trade-off.** Local builds/dev fail until `.env.local` points at `dev`, which is intended.
+
+**Addendum (2026-10-02).** The app reads only `DATABASE_URL` (`databaseUrl()` in `dbTarget.mjs`). The
+Vercel Neon integration also injects `POSTGRES_URL`, and preferring it would have kept previews on
+production. The integration is now connected to Production only; previews get a manual
+Secret `DATABASE_URL` pointing at `dev`.
