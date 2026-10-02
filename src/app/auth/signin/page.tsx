@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { LogoMark } from "@/components/logo-mark";
 
 export default function SignInPage() {
   return (
@@ -49,13 +50,17 @@ function SignInForm() {
       <div style={{ width: "100%", maxWidth: 400, padding: "0 24px" }}>
         <div style={{ height: 5, background: "#16233F", borderRadius: 2, marginBottom: 32 }} />
 
-        <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 28, fontWeight: 600, color: "#16233F", margin: "0 0 8px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
+          <LogoMark size={64} />
+          <span style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 24, fontWeight: 600, color: "#16233F", letterSpacing: "-0.01em" }}>
+            Project Tracker
+          </span>
+        </div>
+
+        <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 28, fontWeight: 600, color: "#16233F", margin: "0 0 28px" }}>
           Sign in
         </h1>
-        <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#6E6656", margin: "0 0 28px" }}>
-          Project Tracker
-        </p>
-
+        
         <button
           type="button"
           onClick={() => signIn("google", { callbackUrl })}
