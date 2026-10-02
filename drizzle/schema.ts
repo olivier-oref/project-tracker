@@ -24,6 +24,8 @@ export const projects = pgTable("projects", {
   title: text("title").notNull(),
   subtitle: text("subtitle"),
   ownerId: uuid("owner_id").references(() => users.id),
+  // Ordered phase names; tasks.phase holds one of them (or null). Edited via PUT /phases.
+  phases: text("phases").array().notNull().default(sql`'{}'::text[]`),
   createdAt: timestamp("created_at", { withTimezone: true }).default(sql`now()`),
   updatedAt: timestamp("updated_at", { withTimezone: true }).default(sql`now()`),
 });

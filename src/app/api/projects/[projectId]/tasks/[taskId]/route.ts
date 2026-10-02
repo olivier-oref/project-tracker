@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq, and, max } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { verifyProjectMembership, touchProject, projectMemberNames } from "@/lib/project-auth";
+import { verifyProjectMembership, touchProject, projectMemberNames, isProjectPhase } from "@/lib/project-auth";
 import { resolveOwner } from "@/lib/owners";
 import { sections, tasks } from "../../../../../../../drizzle/schema";
 
@@ -70,7 +70,11 @@ export async function PATCH(
   }
 
   if (body.phase !== undefined) {
-    updates.phase = typeof body.phase === "string" ? body.phase : null;
+    const phase = typeof body.phase === "string" && body.phase ? body.phase : null;
+    if (!(await isProjectPhase(projectId, phase))) {
+      return NextResponse.json({ error: "Unknown phase" }, { status: 400 });
+    }
+    updates.phase = phase;
   }
 
   if (body.sectionId !== undefined && body.sectionId !== row.task.sectionId) {

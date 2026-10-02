@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { TopicSection } from "@/components/tracker/topic-section";
 import { TaskRowNew, type FlatTask } from "@/components/tracker/task-row-new";
 import { ownerKey, ownerLabel, ownerSuggestions } from "@/lib/owners";
+import { PhaseEditor } from "@/components/tracker/phase-editor";
 import type { MemberInfo, NoteData } from "@/components/tracker/note-block";
 import { StripBar } from "@/components/tracker/strip-bar";
 import { UsersLegend } from "@/components/tracker/users-legend";
@@ -12,16 +13,6 @@ import { UsersLegend } from "@/components/tracker/users-legend";
 export type { FlatTask, MemberInfo, NoteData };
 
 type SectionInfo = { id: string; title: string; sortOrder: number };
-
-const PHASE_LABELS: Record<string, string> = {
-  remote: "Remote week",
-  nyc: "NYC week",
-  later: "Later",
-};
-
-function phaseLabel(phase: string): string {
-  return PHASE_LABELS[phase] ?? phase.charAt(0).toUpperCase() + phase.slice(1);
-}
 
 function fmtDate(iso: string | null): string {
   if (!iso) return "No date set";
@@ -46,6 +37,7 @@ export function TrackerApp({
   tasks,
   notesByTask,
   members,
+  phases,
   isOwner,
 }: {
   projectId: string;
@@ -55,6 +47,8 @@ export function TrackerApp({
   tasks: FlatTask[];
   notesByTask: Record<string, NoteData[]>;
   members: MemberInfo[];
+  /** The project's phases, in order. */
+  phases: string[];
   isOwner: boolean;
 }) {
   void isOwner;
@@ -98,10 +92,11 @@ export function TrackerApp({
     startTransition(() => router.refresh());
   }
 
-  const phases = useMemo(
-    () => Array.from(new Set(tasks.map((t) => t.phase).filter((p): p is string => Boolean(p)))),
-    [tasks]
-  );
+  const phaseTaskCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const t of tasks) if (t.phase) counts[t.phase] = (counts[t.phase] ?? 0) + 1;
+    return counts;
+  }, [tasks]);
 
   // Owner filter: members, then outsiders who own at least one task.
   const ownerFilterOptions = useMemo(() => {
@@ -165,7 +160,7 @@ export function TrackerApp({
   }
 
   function downloadBackup() {
-    const data = JSON.stringify({ title, subtitle, sections, tasks, notesByTask, members }, null, 2);
+    const data = JSON.stringify({ title, subtitle, phases, sections, tasks, notesByTask, members }, null, 2);
     const blob = new Blob([data], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -332,12 +327,13 @@ export function TrackerApp({
           <div className="mast-meta">
             {phases.map((phase, i) => (
               <span key={phase}>
-                Phase {i + 1} <b>{phaseLabel(phase)}</b>
+                Phase {i + 1} <b>{phase}</b>
               </span>
             ))}
             <span>
               Shared board <b>everyone sees the same data</b>
             </span>
+            <PhaseEditor projectId={projectId} phases={phases} taskCounts={phaseTaskCounts} onSave={onSave} />
           </div>
         </header>
 
@@ -363,7 +359,7 @@ export function TrackerApp({
             <option value="">All phases</option>
             {phases.map((phase) => (
               <option key={phase} value={phase}>
-                {phaseLabel(phase)}
+                {phase}
               </option>
             ))}
           </select>

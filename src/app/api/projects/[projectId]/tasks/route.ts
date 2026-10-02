@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq, and, max } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { verifyProjectMembership, touchProject, projectMemberNames } from "@/lib/project-auth";
+import { verifyProjectMembership, touchProject, projectMemberNames, isProjectPhase } from "@/lib/project-auth";
 import { sections, tasks } from "../../../../../../drizzle/schema";
 
 export async function POST(
@@ -40,7 +40,10 @@ export async function POST(
     return NextResponse.json({ error: "Owner is not a project member" }, { status: 400 });
   }
   const dueDate = typeof body.dueDate === "string" ? body.dueDate : null;
-  const phase = typeof body.phase === "string" ? body.phase : null;
+  const phase = typeof body.phase === "string" && body.phase ? body.phase : null;
+  if (!(await isProjectPhase(projectId, phase))) {
+    return NextResponse.json({ error: "Unknown phase" }, { status: 400 });
+  }
 
   const [{ value }] = await db
     .select({ value: max(tasks.sortOrder) })

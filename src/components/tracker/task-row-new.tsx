@@ -36,12 +36,6 @@ const STATUS_OPTIONS = [
   { v: "done", label: "Done" },
 ];
 
-const PHASE_LABELS: Record<string, string> = {
-  remote: "Remote week",
-  nyc: "NYC week",
-  later: "Later",
-};
-
 function autoGrow(el: HTMLTextAreaElement | null) {
   if (!el) return;
   el.style.height = "auto";
@@ -197,7 +191,7 @@ export function TaskRowNew({
             <option value="">No phase</option>
             {phases.map((p) => (
               <option key={p} value={p}>
-                {PHASE_LABELS[p] ?? p}
+                {p}
               </option>
             ))}
           </select>

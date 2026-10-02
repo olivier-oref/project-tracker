@@ -8,6 +8,7 @@ const mockTouch = jest.fn();
 jest.mock("@/lib/project-auth", () => ({
   verifyProjectMembership: () => mockVerify(),
   touchProject: (id: string) => mockTouch(id),
+  isProjectPhase: async (_p: string, phase: string | null) => !phase || phase === "SF",
   projectMemberNames: async () => [
     { id: "u1", name: "Olivier Marschalik" },
     { id: "u2", name: "felipe" },
@@ -100,6 +101,22 @@ describe("PATCH task owner", () => {
     await patch({ status: "done" });
     expect(mockTouch).toHaveBeenCalledTimes(1);
     expect(mockTouch).toHaveBeenCalledWith("p1");
+  });
+});
+
+describe("PATCH task phase", () => {
+  it("accepts one of the project's phases or none", async () => {
+    selectResults.push(taskRow);
+    await patch({ phase: "SF" });
+    selectResults.push(taskRow);
+    await patch({ phase: "" });
+    expect(updates).toEqual([expect.objectContaining({ phase: "SF" }), expect.objectContaining({ phase: null })]);
+  });
+
+  it("rejects a phase the project doesn't have", async () => {
+    selectResults.push(taskRow);
+    expect((await patch({ phase: "Paris" })).status).toBe(400);
+    expect(updates).toEqual([]);
   });
 });
 
