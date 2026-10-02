@@ -15,6 +15,13 @@
       "when": 1790971069419,
       "tag": "0001_task_owner_name",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790971685643,
+      "tag": "0002_project_phases",
+      "breakpoints": true
     }
   ]
 }

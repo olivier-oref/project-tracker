@@ -48,3 +48,21 @@ the project; views, filter and export group outsiders by name.
 (loses what people type).
 
 **Trade-off.** If an outsider later joins, their old tasks stay on the name until reassigned.
+
+## ADR-004 — Phases are a stored, ordered list per project (2026-10-02)
+
+**Context.** Phases were derived from whatever values tasks happened to have (seeded data): no way to
+add, rename, reorder or delete one, empty phases couldn't exist, and new projects had none.
+
+**Decision.** `projects.phases text[]` holds the ordered list; `tasks.phase` keeps the name as text and
+must be in the list. Edits go through `PUT /phases` with the full new list plus `renames` (old → new):
+renamed phases carry their tasks, removed ones are cleared from tasks (UI confirms with the count). The
+task rewrite is a single `UPDATE … SET phase = CASE …` (so swaps can't collapse) scoped to the project,
+run with the list update in one `db.batch` — neon-http has no interactive transactions. Migration 0002
+backfilled each project's list from its tasks in board order.
+
+**Rejected.** A `phases` table with task foreign keys: cleaner renames, but a bigger migration and more
+joins for a list of a handful of names. Option B (create-only from the task picker): no rename/reorder/delete.
+
+**Trade-off.** Renames and deletes rewrite task rows (bounded by one project's tasks). Two people editing
+the list at once: last save wins; a rename of a name the other just removed is rejected (400).

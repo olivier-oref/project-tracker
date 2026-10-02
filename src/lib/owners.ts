@@ -39,3 +39,17 @@ export function ownerSuggestions(members: Member[], tasks: OwnerRef[]): string[]
   }
   return [...members.map((m) => m.name), ...[...outsiders.values()].sort((a, b) => a.localeCompare(b))];
 }
+
+/**
+ * Suggestions to show while typing an owner: names that start with what was typed first, then names
+ * containing it; case-insensitive; the exact current value is left out; at most `limit`.
+ * Empty input lists the first `limit` suggestions (tapping the field on a phone shows names).
+ */
+export function matchSuggestions(typed: string, names: string[], limit = 6): string[] {
+  const q = typed.trim().toLowerCase();
+  const pool = names.filter((n) => n.toLowerCase() !== q);
+  if (!q) return pool.slice(0, limit);
+  const starts = pool.filter((n) => n.toLowerCase().startsWith(q));
+  const contains = pool.filter((n) => !n.toLowerCase().startsWith(q) && n.toLowerCase().includes(q));
+  return [...starts, ...contains].slice(0, limit);
+}

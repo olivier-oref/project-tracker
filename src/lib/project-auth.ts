@@ -36,3 +36,10 @@ export async function projectMemberNames(projectId: string) {
     .where(eq(projectMembers.projectId, projectId));
   return rows.map((r) => ({ id: r.id as string, name: r.name ?? r.email.split("@")[0] }));
 }
+
+/** True when `phase` is null/empty or one of the project's phases. */
+export async function isProjectPhase(projectId: string, phase: string | null) {
+  if (!phase) return true;
+  const [row] = await db.select({ phases: projects.phases }).from(projects).where(eq(projects.id, projectId));
+  return Boolean(row?.phases.includes(phase));
+}

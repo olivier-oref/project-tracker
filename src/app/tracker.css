@@ -44,6 +44,17 @@
   margin-top: 20px; font-family: var(--mono); font-size: 11px; color: var(--muted);
 }
 .mast-meta b { color: var(--navy); font-weight: 500; }
+.phase-editor {
+  flex-basis: 100%; border: 1px solid var(--line-2); background: var(--paper-2); border-radius: 3px;
+  padding: 14px; font-family: var(--body); font-size: 13px; color: var(--ink);
+}
+.phase-editor ol { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 8px; }
+.phase-editor li, .phase-add, .phase-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.phase-editor input { flex: 1 1 160px; min-width: 0; padding: 6px 8px; border: 1px solid var(--line-2); border-radius: 3px; background: var(--paper); font: inherit; }
+.phase-n { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); min-width: 56px; }
+.phase-actions { margin-top: 12px; }
+.phase-empty { margin: 0 0 10px; color: var(--muted); font-style: italic; }
+.phase-error, .add-error { margin: 10px 0 0; color: var(--rust); font-size: 12.5px; }
 
 .toolbar {
   display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
@@ -207,6 +218,16 @@
 }
 .tracker-scope input.owner:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
 .tracker-scope input.owner::placeholder { color: #A79E8B; font-weight: 400; }
+.owner-list {
+  position: absolute; top: calc(100% + 4px); left: 0; z-index: 30; min-width: 100%; max-width: 280px;
+  margin: 0; padding: 4px 0; list-style: none; background: var(--paper); border: 1px solid var(--line-2);
+  border-radius: 3px; box-shadow: 0 6px 18px rgba(22, 35, 63, 0.14);
+}
+.owner-list li {
+  padding: 9px 12px; font-family: var(--mono); font-size: 12px; color: var(--ink); cursor: pointer;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.owner-list li:hover, .owner-list li[aria-selected="true"] { background: var(--paper-2); color: var(--navy); }
 
 .tracker-scope input.due {
   font-family: var(--mono); font-size: 11px; color: var(--ink);

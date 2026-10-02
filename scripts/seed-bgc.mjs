@@ -24,8 +24,8 @@ console.log("Users:", { olivier: OLIVIER_ID, ed: ed.id, richard: richard.id });
 
 // Create project
 const [project] = await sql`
-  INSERT INTO projects (title, subtitle, owner_id)
-  VALUES ('Desk Launch Tracker', 'GPU / Compute Brokerage Desk', ${OLIVIER_ID})
+  INSERT INTO projects (title, subtitle, owner_id, phases)
+  VALUES ('Desk Launch Tracker', 'GPU / Compute Brokerage Desk', ${OLIVIER_ID}, ${["Remote week", "NYC week", "Later"]})
   RETURNING id
 `;
 const pid = project.id;

@@ -196,6 +196,7 @@ export default async function ProjectPage({
         tasks={allTasks}
         notesByTask={notesByTaskObj}
         members={memberInfos}
+        phases={project.phases}
         isOwner={isOwner}
       />
     </>

@@ -1,4 +1,4 @@
-import { resolveOwner, ownerKey, ownerLabel, ownerSuggestions } from "./owners";
+import { resolveOwner, ownerKey, ownerLabel, ownerSuggestions, matchSuggestions } from "./owners";
 
 const members = [
   { id: "u1", name: "Olivier Marschalik" },
@@ -52,5 +52,24 @@ describe("ownerSuggestions", () => {
       { ownerId: null, ownerName: "Bob" },
     ];
     expect(ownerSuggestions(members, tasks)).toEqual(["Olivier Marschalik", "Felipe", "Bob", "Dana"]);
+  });
+});
+
+describe("matchSuggestions", () => {
+  const names = ["Richard", "Ed James", "Olivier Marschalik", "Dana from Legal", "Rich Hall"];
+
+  it("puts prefix matches first, then names containing the text, any case", () => {
+    expect(matchSuggestions("ric", names)).toEqual(["Richard", "Rich Hall"]);
+    expect(matchSuggestions("JAM", names)).toEqual(["Ed James"]);
+    expect(matchSuggestions("al", names)).toEqual(["Olivier Marschalik", "Dana from Legal", "Rich Hall"]);
+  });
+
+  it("lists names for an empty field, capped", () => {
+    expect(matchSuggestions("", names, 3)).toEqual(["Richard", "Ed James", "Olivier Marschalik"]);
+  });
+
+  it("leaves out the exact current value and returns nothing when nothing matches", () => {
+    expect(matchSuggestions("Richard", names)).toEqual([]);
+    expect(matchSuggestions("zzz", names)).toEqual([]);
   });
 });

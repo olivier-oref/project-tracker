@@ -14,7 +14,7 @@ export function TopicSection({
   isFiltering,
   notesByTask,
   members,
-  ownersListId,
+  ownerSuggestions,
   phases,
   defaultPhase,
   onSave,
@@ -28,12 +28,13 @@ export function TopicSection({
   isFiltering: boolean;
   notesByTask: Record<string, NoteData[]>;
   members: MemberInfo[];
-  ownersListId: string;
+  ownerSuggestions: string[];
   phases: string[];
   defaultPhase: string;
   onSave: () => void;
 }) {
   const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [addError, setAddError] = useState("");
   const addInputRef = useRef<HTMLInputElement | null>(null);
 
   const pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
@@ -46,11 +47,19 @@ export function TopicSection({
       addInputRef.current?.focus();
       return;
     }
-    await fetch(`/api/projects/${projectId}/tasks`, {
+    const res = await fetch(`/api/projects/${projectId}/tasks`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sectionId: topic.id, title, phase: defaultPhase || undefined }),
-    });
+    }).catch(() => null);
+    if (!res?.ok) {
+      // Keep what was typed; say why it wasn't added.
+      const body = await res?.json().catch(() => null);
+      setAddError(body?.error ? `Not added: ${body.error}` : "Not added. Check your connection and try again.");
+      onSave();
+      return;
+    }
+    setAddError("");
     setNewTaskTitle("");
     onSave();
     addInputRef.current?.focus();
@@ -114,7 +123,7 @@ export function TopicSection({
             task={task}
             notes={notesByTask[task.id] ?? []}
             members={members}
-            ownersListId={ownersListId}
+            ownerSuggestions={ownerSuggestions}
             phases={phases}
             onSave={onSave}
           />
@@ -140,6 +149,7 @@ export function TopicSection({
           Add
         </button>
       </div>
+      {addError ? <p className="add-error" role="alert">{addError}</p> : null}
     </section>
   );
 }

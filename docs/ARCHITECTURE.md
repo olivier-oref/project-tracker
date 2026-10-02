@@ -33,7 +33,7 @@ NextAuth v5 (JWT sessions) · Resend (invite email) · Tailwind 4 · Jest (unit)
 | Auth | `src/lib/auth.ts`, `src/app/api/auth/*`, `src/app/auth/*` | Google + email/password sign-in; invite-only gate; links invites to the user on first sign-in |
 | Signup rules | `src/lib/signup-rules.ts` | pure validation and the invite-only decision, shared by signup and Google sign-in |
 | Access control | `src/lib/project-auth.ts` | `verifyProjectMembership` → 401/403 or the caller's membership; every project API route calls it |
-| Project API | `src/app/api/projects/**` | CRUD for projects, sections, tasks, notes, members; `version` returns `updatedAt` for change polling; `export` returns HTML |
+| Project API | `src/app/api/projects/**` | CRUD for projects, sections, tasks, notes, members; `phases` replaces the phase list; `version` returns `updatedAt` for change polling; `export` returns HTML |
 | Export | `src/lib/export.ts` | renders the standalone HTML status report (all user text HTML-escaped) |
 | Email | `src/lib/email.ts` | invite emails via Resend (sender domain not yet verified) |
 | Feedback widget | `src/app/layout.tsx` | Faster Fixes `FeedbackProvider` (project `proj_80a273e6ef05133c46ad7c92`, domain `projects.orefconsulting.com`); mounts only after a `?ff_token=` reviewer link, otherwise inert. Faster Fixes accepts its registered domain, any subdomain, and localhost |
@@ -51,7 +51,7 @@ NextAuth v5 (JWT sessions) · Resend (invite email) · Tailwind 4 · Jest (unit)
 
 ## Data model (`drizzle/schema.ts`)
 
-`users` (email, name, password_hash nullable for Google-only accounts) · `projects` (owner) ·
+`users` (email, name, password_hash nullable for Google-only accounts) · `projects` (owner, ordered `phases` list) ·
 `project_members` (project, user nullable until the invite is accepted, email, role, invited_by) ·
 `sections` (project) · `tasks` (section, owner, status, due date, phase, sort order) · `notes` (task,
 author). Deleting a project cascades to members, sections, tasks and notes.
@@ -59,6 +59,11 @@ author). Deleting a project cascades to members, sections, tasks and notes.
 Task owner is either `owner_id` (a member) or `owner_name` (anyone, by name — they may not have access),
 never both. `PATCH /tasks/:id` takes `{ owner: "<typed name>" }` and `resolveOwner` (`src/lib/owners.ts`)
 links a member whose name matches (case-insensitive) or keeps the name as typed (ADR-003).
+
+Phases are an ordered list on the project (`projects.phases`); `tasks.phase` holds one of them or null
+(task writes reject other values). `PUT /api/projects/:id/phases` takes `{ phases, renames }`; the pure
+planner `planPhaseChange` (`src/lib/phases.ts`) validates it and lists task rewrites, which run as one
+`UPDATE … CASE` together with the list in a `db.batch` (ADR-004). Any member can edit phases.
 
 Migrations: production was created with `drizzle-kit push`, so it has no migrations journal and
 `drizzle-kit migrate` would try to re-create every table. Migrations from `0001` on are idempotent SQL
