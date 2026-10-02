@@ -1,5 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { FeedbackProvider } from "@fasterfixes/react";
 import "./globals.css";
+
+// Faster Fixes feedback widget (public project id). It mounts only for reviewers who opened the
+// site with ?ff_token=…; everyone else gets an inert provider and no requests to Faster Fixes.
+const FF_PROJECT_ID = "proj_80a273e6ef05133c46ad7c92";
 
 export const metadata: Metadata = {
   title: "Project Tracker",
@@ -23,7 +28,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body className="font-sans bg-paper text-ink min-h-screen antialiased">
-        {children}
+        <FeedbackProvider projectId={FF_PROJECT_ID}>{children}</FeedbackProvider>
       </body>
     </html>
   );
