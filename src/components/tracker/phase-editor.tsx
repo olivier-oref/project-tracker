@@ -62,7 +62,7 @@ export function PhaseEditor({
     const res = await fetch(`/api/projects/${projectId}/phases`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phases: rows.map((r) => r.name), renames }),
+      body: JSON.stringify({ phases: rows.map((r) => r.name), renames, expected: phases }),
     }).catch(() => null);
     setSaving(false);
     if (!res?.ok) {

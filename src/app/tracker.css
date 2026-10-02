@@ -54,7 +54,7 @@
 .phase-n { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); min-width: 56px; }
 .phase-actions { margin-top: 12px; }
 .phase-empty { margin: 0 0 10px; color: var(--muted); font-style: italic; }
-.phase-error { margin: 10px 0 0; color: var(--rust); }
+.phase-error, .add-error { margin: 10px 0 0; color: var(--rust); font-size: 12.5px; }
 
 .toolbar {
   display: flex; flex-wrap: wrap; gap: 10px; align-items: center;

@@ -57,7 +57,7 @@ export function TrackerApp({
   const [isPending, startTransition] = useTransition();
 
   const [view, setView] = useState<"topic" | "owner" | "date">("topic");
-  const [filterPhase, setFilterPhase] = useState("");
+  const [phaseFilterChoice, setFilterPhase] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterOwner, setFilterOwner] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -91,6 +91,10 @@ export function TrackerApp({
   function onSave() {
     startTransition(() => router.refresh());
   }
+
+  // A phase renamed or deleted (here or by someone else) drops out of the filter instead of hiding
+  // every task and becoming the default phase for new tasks.
+  const filterPhase = phases.includes(phaseFilterChoice) ? phaseFilterChoice : "";
 
   const phaseTaskCounts = useMemo(() => {
     const counts: Record<string, number> = {};

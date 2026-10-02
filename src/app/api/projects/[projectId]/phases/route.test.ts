@@ -60,3 +60,10 @@ it("adding a phase saves the list without rewriting tasks", async () => {
   expect(res.status).toBe(200);
   expect(writes).toEqual(["update"]);
 });
+
+it("409 when the list changed since the editor opened; nothing written", async () => {
+  selectResults.push([{ phases: ["SF", "Monaco"] }]);
+  const res = await put({ phases: ["SF"], expected: ["SF"] });
+  expect(res.status).toBe(409);
+  expect(writes).toEqual([]);
+});

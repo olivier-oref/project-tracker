@@ -6,7 +6,9 @@ import { planPhaseChange } from "@/lib/phases";
 import { projects, sections, tasks } from "../../../../../../drizzle/schema";
 
 /**
- * Replaces the project's phase list. Body: { phases: string[], renames?: { [oldName]: newName } }.
+ * Replaces the project's phase list. Body: { phases: string[], renames?: { [oldName]: newName },
+ * expected?: string[] } — `expected` is the list the editor started from; a mismatch means someone
+ * else changed phases meanwhile → 409, so a stale editor can't silently delete their new phase.
  * Renamed phases carry their tasks along; phases dropped from the list are cleared from tasks.
  * Any member may edit phases (same as workstreams).
  */
@@ -26,6 +28,12 @@ export async function PUT(
   }
 
   const body = await request.json().catch(() => null);
+  if (Array.isArray(body?.expected) && JSON.stringify(body.expected) !== JSON.stringify(project.phases)) {
+    return NextResponse.json(
+      { error: "Phases were changed by someone else. Cancel and reopen to see the latest." },
+      { status: 409 }
+    );
+  }
   const plan = planPhaseChange(project.phases, body?.phases, body?.renames ?? {});
   if (!plan.ok) {
     return NextResponse.json({ error: plan.error }, { status: 400 });

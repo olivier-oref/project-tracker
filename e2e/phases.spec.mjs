@@ -104,6 +104,39 @@ test.describe('phases', () => {
     await expect(rows.nth(1).getByLabel('Phase')).toHaveValue('A');
   });
 
+  test('renaming the filtered phase resets the filter; new tasks still get added', async ({ page, request }, testInfo) => {
+    const project = await data.project(uniquePrefix(testInfo.title));
+    await putPhases(request, project, { phases: ['SF', 'Monaco'] });
+    await data.section(project.id, 'Ops');
+    await openProject(page, project);
+
+    await page.getByLabel('Filter by phase').selectOption('SF');
+    await page.getByRole('button', { name: 'Edit phases' }).click();
+    await page.getByLabel('Phase 1 name').fill('Bay Area');
+    await savePhases(page);
+    await expect(page.getByLabel('Filter by phase')).toHaveValue('');
+
+    const created = page.waitForResponse((r) => r.url().endsWith('/tasks') && r.request().method() === 'POST');
+    await page.getByLabel('New task').fill('Book flights');
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
+    expect((await created).ok()).toBeTruthy();
+    await expect(page.locator('.task')).toHaveCount(1);
+  });
+
+  test('a failed add keeps the typed title and says why', async ({ page }, testInfo) => {
+    const project = await data.project(uniquePrefix(testInfo.title));
+    await data.section(project.id, 'Ops');
+    await openProject(page, project);
+    await page.route('**/api/projects/*/tasks', (route) =>
+      route.request().method() === 'POST' ? route.fulfill({ status: 500, json: { error: 'Server error' } }) : route.fallback());
+
+    await page.getByLabel('New task').fill('Do not lose me');
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
+    await expect(page.getByRole('alert')).toContainText('Not added');
+    await expect(page.getByLabel('New task')).toHaveValue('Do not lose me');
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+  });
+
   test("tasks only take the project's phases", async ({ request }, testInfo) => {
     const project = await data.project(uniquePrefix(testInfo.title));
     await putPhases(request, project, { phases: ['SF'] });
