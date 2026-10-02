@@ -2,7 +2,8 @@
 
 import { useRef } from "react";
 import { NoteBlock, type MemberInfo, type NoteData } from "@/components/tracker/note-block";
-import { ownerLabel, resolveOwner } from "@/lib/owners";
+import { ownerLabel } from "@/lib/owners";
+import { OwnerInput } from "@/components/tracker/owner-input";
 
 export type FlatTask = {
   id: string;
@@ -42,17 +43,12 @@ function autoGrow(el: HTMLTextAreaElement | null) {
   el.style.height = el.scrollHeight + "px";
 }
 
-function tint(hex: string, a: number): string {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
-}
-
 export function TaskRowNew({
   projectId,
   task,
   notes,
   members,
-  ownersListId,
+  ownerSuggestions,
   phases,
   topicName,
   onSave,
@@ -61,7 +57,7 @@ export function TaskRowNew({
   task: FlatTask;
   notes: NoteData[];
   members: MemberInfo[];
-  ownersListId: string;
+  ownerSuggestions: string[];
   phases: string[];
   topicName?: string;
   onSave: () => void;
@@ -70,7 +66,6 @@ export function TaskRowNew({
 
   const done = task.status === "done";
   const uiStatus = STATUS_TO_UI[task.status] ?? "open";
-  const owner = members.find((m) => m.id === task.ownerId);
   const ownerText = ownerLabel(task, members);
 
   async function patchTask(body: Record<string, unknown>) {
@@ -100,25 +95,6 @@ export function TaskRowNew({
     patchTask({ title: e.target.value });
   }
 
-  function onOwnerChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const match = resolveOwner(e.target.value, members).ownerId;
-    const member = members.find((m) => m.id === match);
-    const wrap = e.target.parentElement;
-    if (wrap && member) {
-      wrap.style.setProperty("--o", member.color);
-      wrap.style.setProperty("--obg", tint(member.color, 0.14));
-    } else if (wrap) {
-      wrap.style.removeProperty("--o");
-      wrap.style.removeProperty("--obg");
-    }
-  }
-
-  function onOwnerBlur(e: React.FocusEvent<HTMLInputElement>) {
-    // Saved as typed: a member's name links the member, any other name is kept (the server decides).
-    if (e.target.value.trim() === ownerText) return;
-    patchTask({ owner: e.target.value });
-  }
-
   function onDueChange(e: React.ChangeEvent<HTMLInputElement>) {
     patchTask({ dueDate: e.target.value || null });
   }
@@ -126,10 +102,6 @@ export function TaskRowNew({
   function onPhaseChange(e: React.ChangeEvent<HTMLSelectElement>) {
     patchTask({ phase: e.target.value || null });
   }
-
-  const ownerStyle = owner
-    ? ({ "--o": owner.color, "--obg": tint(owner.color, 0.14) } as React.CSSProperties)
-    : undefined;
 
   return (
     <div className={`task${done ? " done" : ""}`}>
@@ -163,23 +135,12 @@ export function TaskRowNew({
               </option>
             ))}
           </select>
-          <span className="owner-wrap" style={ownerStyle}>
-            <span className="owner-dot" />
-            <input
-              className="owner"
-              aria-label="Owner"
-              defaultValue={ownerText}
-              list={ownersListId}
-              maxLength={80}
-              autoComplete="off"
-              placeholder="Unassigned"
-              onChange={onOwnerChange}
-              onBlur={onOwnerBlur}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") e.currentTarget.blur();
-              }}
-            />
-          </span>
+          <OwnerInput
+            initial={ownerText}
+            members={members}
+            suggestions={ownerSuggestions}
+            onCommit={(value) => patchTask({ owner: value })}
+          />
           <input
             className={`due${task.dueDate ? "" : " nodate"}`}
             type="date"

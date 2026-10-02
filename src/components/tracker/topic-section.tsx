@@ -14,7 +14,7 @@ export function TopicSection({
   isFiltering,
   notesByTask,
   members,
-  ownersListId,
+  ownerSuggestions,
   phases,
   defaultPhase,
   onSave,
@@ -28,7 +28,7 @@ export function TopicSection({
   isFiltering: boolean;
   notesByTask: Record<string, NoteData[]>;
   members: MemberInfo[];
-  ownersListId: string;
+  ownerSuggestions: string[];
   phases: string[];
   defaultPhase: string;
   onSave: () => void;
@@ -123,7 +123,7 @@ export function TopicSection({
             task={task}
             notes={notesByTask[task.id] ?? []}
             members={members}
-            ownersListId={ownersListId}
+            ownerSuggestions={ownerSuggestions}
             phases={phases}
             onSave={onSave}
           />

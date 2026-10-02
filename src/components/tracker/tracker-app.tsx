@@ -115,7 +115,6 @@ export function TrackerApp({
     return options;
   }, [members, tasks]);
   const suggestions = useMemo(() => ownerSuggestions(members, tasks), [members, tasks]);
-  const ownersListId = `owners-${projectId}`;
 
   const filterText = searchQuery.trim().toLowerCase();
 
@@ -209,7 +208,7 @@ export function TrackerApp({
         isFiltering={isFiltering}
         notesByTask={notesByTask}
         members={members}
-        ownersListId={ownersListId}
+        ownerSuggestions={suggestions}
         phases={phases}
         defaultPhase={filterPhase}
         onSave={onSave}
@@ -269,7 +268,7 @@ export function TrackerApp({
               task={task}
               notes={notesByTask[task.id] ?? []}
               members={members}
-              ownersListId={ownersListId}
+              ownerSuggestions={suggestions}
               phases={phases}
               topicName={sectionById.get(task.sectionId)}
               onSave={onSave}
@@ -311,7 +310,7 @@ export function TrackerApp({
           task={task}
           notes={notesByTask[task.id] ?? []}
           members={members}
-          ownersListId={ownersListId}
+          ownerSuggestions={suggestions}
           phases={phases}
           topicName={sectionById.get(task.sectionId)}
           onSave={onSave}
@@ -328,17 +327,6 @@ export function TrackerApp({
         <header className="mast">
           <div className="kicker">{subtitle ?? ""}</div>
           <h1>{title}</h1>
-          <div className="mast-meta">
-            {phases.map((phase, i) => (
-              <span key={phase}>
-                Phase {i + 1} <b>{phase}</b>
-              </span>
-            ))}
-            <span>
-              Shared board <b>everyone sees the same data</b>
-            </span>
-            <PhaseEditor projectId={projectId} phases={phases} taskCounts={phaseTaskCounts} onSave={onSave} />
-          </div>
         </header>
 
         <div className="toolbar">
@@ -416,14 +404,20 @@ export function TrackerApp({
             </button>
           </span>
         </div>
-        <datalist id={ownersListId}>
-          {suggestions.map((name) => (
-            <option key={name} value={name} />
-          ))}
-        </datalist>
 
         <StripBar metrics={metrics} />
         <UsersLegend members={members} />
+        <div className="mast-meta">
+          {phases.map((phase, i) => (
+            <span key={phase}>
+              Phase {i + 1} <b>{phase}</b>
+            </span>
+          ))}
+          <span>
+            Shared board <b>everyone sees the same data</b>
+          </span>
+          <PhaseEditor projectId={projectId} phases={phases} taskCounts={phaseTaskCounts} onSave={onSave} />
+        </div>
 
         <main>
           {view === "topic" ? renderTopicView() : view === "owner" ? renderOwnerView() : renderDateView()}
