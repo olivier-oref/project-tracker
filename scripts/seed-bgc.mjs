@@ -1,7 +1,9 @@
 import { config } from "dotenv";
 import { neon } from "@neondatabase/serverless";
+import { assertDbTarget } from "../src/lib/dbTarget.mjs";
 
 config({ path: ".env.local" });
+assertDbTarget(process.env.DATABASE_URL);
 const sql = neon(process.env.DATABASE_URL);
 
 const OLIVIER_ID = "d319802a-de5b-430d-b7d8-76c38c916620";

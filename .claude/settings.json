@@ -1,0 +1,10 @@
+{
+  "extraKnownMarketplaces": {
+    "olivier-standards": {
+      "source": { "source": "github", "repo": "olivier-oref/claude-standards" }
+    }
+  },
+  "enabledPlugins": {
+    "project-standards@olivier-standards": true
+  }
+}
