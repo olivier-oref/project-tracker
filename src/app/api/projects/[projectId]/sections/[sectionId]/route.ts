@@ -45,37 +45,28 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid sortOrder" }, { status: 400 });
     }
 
-    const result = await db.transaction(async (tx) => {
-      const [other] = await tx
-        .select()
-        .from(sections)
-        .where(
-          and(eq(sections.projectId, projectId), eq(sections.sortOrder, sortOrder))
-        );
+    // Swap with the section holding that position. sort_order is unique per project, so park this
+    // one at -1 first. neon-http has no interactive transactions; db.batch runs the writes atomically.
+    const [other] = await db
+      .select()
+      .from(sections)
+      .where(and(eq(sections.projectId, projectId), eq(sections.sortOrder, sortOrder)));
 
-      if (other && other.id !== sectionId) {
-        await tx
-          .update(sections)
-          .set({ sortOrder: -1 })
-          .where(eq(sections.id, sectionId));
-
-        await tx
-          .update(sections)
-          .set({ sortOrder: existing.sortOrder })
-          .where(eq(sections.id, other.id));
-      }
-
-      const [updated] = await tx
-        .update(sections)
-        .set({ sortOrder })
-        .where(eq(sections.id, sectionId))
-        .returning();
-
-      return updated;
-    });
+    const moveSelf = db.update(sections).set({ sortOrder }).where(eq(sections.id, sectionId)).returning();
+    let result;
+    if (other && other.id !== sectionId) {
+      const [, , moved] = await db.batch([
+        db.update(sections).set({ sortOrder: -1 }).where(eq(sections.id, sectionId)),
+        db.update(sections).set({ sortOrder: existing.sortOrder }).where(eq(sections.id, other.id)),
+        moveSelf,
+      ]);
+      result = moved[0];
+    } else {
+      [result] = await moveSelf;
+    }
 
     await touchProject(projectId);
-  return NextResponse.json(result);
+    return NextResponse.json(result);
   }
 
   await touchProject(projectId);
