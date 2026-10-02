@@ -21,11 +21,15 @@ export function PhaseEditor({
 }) {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<Row[]>([]);
+  // The list the editor opened with. Background refreshes can change `phases` while editing; deletions
+  // and the server's conflict check must compare against what this person actually saw.
+  const [base, setBase] = useState<string[]>([]);
   const [newName, setNewName] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
   function start() {
+    setBase(phases);
     setRows(phases.map((p) => ({ orig: p, name: p })));
     setNewName("");
     setError("");
@@ -49,7 +53,7 @@ export function PhaseEditor({
 
   async function save() {
     const kept = new Set(rows.map((r) => r.orig).filter(Boolean));
-    const removed = phases.filter((p) => !kept.has(p));
+    const removed = base.filter((p) => !kept.has(p));
     const affected = removed.reduce((n, p) => n + (taskCounts[p] ?? 0), 0);
     if (affected && !confirm(`${removed.join(", ")}: ${affected} task${affected > 1 ? "s" : ""} will lose ${removed.length > 1 ? "their phase" : "this phase"}. Continue?`)) {
       return;
@@ -62,7 +66,7 @@ export function PhaseEditor({
     const res = await fetch(`/api/projects/${projectId}/phases`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phases: rows.map((r) => r.name), renames, expected: phases }),
+      body: JSON.stringify({ phases: rows.map((r) => r.name), renames, expected: base }),
     }).catch(() => null);
     setSaving(false);
     if (!res?.ok) {

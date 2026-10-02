@@ -137,6 +137,25 @@ test.describe('phases', () => {
     await page.unrouteAll({ behavior: 'ignoreErrors' });
   });
 
+  test('a phase added by someone else while editing is not deleted by my save', async ({ page, request }, testInfo) => {
+    const project = await data.project(uniquePrefix(testInfo.title));
+    await putPhases(request, project, { phases: ['SF'] });
+    await openProject(page, project);
+    await page.getByRole('button', { name: 'Edit phases' }).click();
+
+    // Someone else adds Monaco; this board refreshes in the background (as on tab focus or the poll).
+    await putPhases(request, project, { phases: ['SF', 'Monaco'] });
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+    await expect(heading(page)).toHaveText(['SF', 'Monaco', 'everyone sees the same data']);
+
+    await page.getByLabel('Phase 1 name').fill('Bay Area');
+    await page.getByRole('button', { name: 'Save phases' }).click();
+    await expect(page.getByRole('alert').filter({ hasText: 'changed by someone else' })).toBeVisible();
+    await expect(page.getByLabel('Phase 1 name')).toHaveValue('Bay Area');
+    await page.reload();
+    await expect(heading(page)).toHaveText(['SF', 'Monaco', 'everyone sees the same data']);
+  });
+
   test("tasks only take the project's phases", async ({ request }, testInfo) => {
     const project = await data.project(uniquePrefix(testInfo.title));
     await putPhases(request, project, { phases: ['SF'] });
