@@ -8,9 +8,9 @@ members, exportable as a styled HTML status report.
 | Environment | Code | Database (Neon branch) | Notes |
 |---|---|---|---|
 | Production | Vercel Production (`main`) | `main` (`ep-morning-silence-aufzhvx1`) | only deployment allowed to touch it |
-| Preview | Vercel Preview (PR branches) | `dev` *(to create)* | Preview-scoped `DATABASE_URL`/`POSTGRES_URL` |
-| Local | `npm run dev` | `dev` *(to create)* | `.env.local` |
-| E2e | Playwright *(planned)* | `e2e` *(to create)* | `.env.test.local` |
+| Preview | Vercel Preview (PR branches) | `dev` (`ep-dark-hill-au3dsavk`) | Preview-scoped `DATABASE_URL` (Secret); Neon integration connected to Production only |
+| Local | `npm run dev` | `dev` (`ep-dark-hill-au3dsavk`) | `.env.local` |
+| E2e | Playwright *(planned)* | `e2e` (`ep-dark-glade-aufmp4w7`) | `.env.test.local` |
 
 The Neon project was provisioned through Vercel's Neon integration (Vercel-managed org); open it via
 Vercel → Storage → Open in Neon Console.

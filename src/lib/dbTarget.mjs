@@ -41,3 +41,12 @@ export function assertDbTarget(url, { env = process.env, hosts = DB_HOSTS } = {}
     + 'Point the database URL at the dev branch/environment, or set ALLOW_PROD_DB=1 for a deliberate production script.',
   );
 }
+
+/**
+ * The app's database URL. Reads DATABASE_URL only: the Vercel Neon integration also injects
+ * POSTGRES_URL for production, and preferring it once sent previews to the production database.
+ */
+export function databaseUrl(env = process.env) {
+  if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set.');
+  return env.DATABASE_URL;
+}

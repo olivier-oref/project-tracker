@@ -12,7 +12,7 @@ cp .env.example .env.local   # fill in values; DATABASE_URL must point at the Ne
 npm run dev                  # http://localhost:3000
 ```
 
-Env vars (names only): `DATABASE_URL` (or `POSTGRES_URL`), `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
+Env vars (names only): `DATABASE_URL` (only — `POSTGRES_URL` is ignored), `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
 `AUTH_SECRET`, `NEXTAUTH_URL`, `RESEND_API_KEY`.
 
 ## Environments

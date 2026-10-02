@@ -1,10 +1,10 @@
 import { config } from "dotenv";
 import { defineConfig } from "drizzle-kit";
-import { assertDbTarget } from "./src/lib/dbTarget.mjs";
+import { assertDbTarget, databaseUrl } from "./src/lib/dbTarget.mjs";
 
 config({ path: ".env.local" });
 
-const url = process.env.POSTGRES_URL ?? process.env.DATABASE_URL!;
+const url = databaseUrl();
 // Migrating production is deliberate: snapshot first, then run with ALLOW_PROD_DB=1.
 assertDbTarget(url);
 

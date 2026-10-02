@@ -1,4 +1,4 @@
-import { dbTargetOf, assertDbTarget, isProductionDeployment } from './dbTarget.mjs';
+import { dbTargetOf, assertDbTarget, isProductionDeployment, databaseUrl } from './dbTarget.mjs';
 
 const hosts = { production: 'ep-prod-aaa', dev: 'ep-dev-bbb', e2e: 'postgres-e2e.up.railway.app' };
 const url = (host) => `postgresql://user:pw@${host}.c-3.us-east-2.aws.neon.tech/db?sslmode=require`;
@@ -50,5 +50,20 @@ describe('assertDbTarget', () => {
   });
   it('never puts the connection string (credentials) in the error', () => {
     try { assertDbTarget(PROD, { env: {}, hosts }); } catch (e) { expect(e.message).not.toMatch(/pw|neon\.tech/); }
+  });
+});
+
+describe('databaseUrl', () => {
+  it('returns DATABASE_URL', () => {
+    expect(databaseUrl({ DATABASE_URL: DEV })).toBe(DEV);
+  });
+
+  it('ignores POSTGRES_URL even when both are set', () => {
+    expect(databaseUrl({ DATABASE_URL: DEV, POSTGRES_URL: PROD })).toBe(DEV);
+  });
+
+  it('throws when DATABASE_URL is missing, even if POSTGRES_URL is set', () => {
+    expect(() => databaseUrl({ POSTGRES_URL: PROD })).toThrow('DATABASE_URL is not set');
+    expect(() => databaseUrl({ DATABASE_URL: '' })).toThrow('DATABASE_URL is not set');
   });
 });
