@@ -144,6 +144,7 @@ export function TaskRowNew({
       <div>
         <textarea
           className="task-title"
+          aria-label="Task title"
           rows={1}
           defaultValue={task.title}
           onInput={(e) => autoGrow(e.currentTarget)}
@@ -156,7 +157,7 @@ export function TaskRowNew({
         <NoteBlock projectId={projectId} taskId={task.id} notes={notes} members={members} onSave={onSave} />
         <div className="task-meta">
           {topicName ? <span className="flat-topic">{topicName}</span> : null}
-          <select className="pill" data-v={uiStatus} defaultValue={uiStatus} onChange={onStatusChange}>
+          <select className="pill" aria-label="Status" data-v={uiStatus} defaultValue={uiStatus} onChange={onStatusChange}>
             {STATUS_OPTIONS.map((s) => (
               <option key={s.v} value={s.v}>
                 {s.label}
@@ -167,6 +168,7 @@ export function TaskRowNew({
             <span className="owner-dot" />
             <input
               className="owner"
+              aria-label="Owner"
               defaultValue={owner?.name ?? ""}
               placeholder="Unassigned"
               onChange={onOwnerChange}
@@ -176,10 +178,11 @@ export function TaskRowNew({
           <input
             className={`due${task.dueDate ? "" : " nodate"}`}
             type="date"
+            aria-label="Due date"
             defaultValue={task.dueDate ?? ""}
             onChange={onDueChange}
           />
-          <select className="pill phase" defaultValue={task.phase ?? ""} onChange={onPhaseChange}>
+          <select className="pill phase" aria-label="Phase" defaultValue={task.phase ?? ""} onChange={onPhaseChange}>
             <option value="">No phase</option>
             {phases.map((p) => (
               <option key={p} value={p}>

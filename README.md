@@ -29,6 +29,9 @@ production database anywhere except the production deployment; deliberate produc
 | `npm run dev` / `build` / `start` | Next.js |
 | `npm test` | Jest unit tests (also the `unit` CI check) |
 | `npm run lint` | ESLint |
+| `npm run e2e:user` | create/reset the e2e test user (needs `.env.test.local`: `DATABASE_URL` of the e2e branch, `AUTH_SECRET`, `E2E_EMAIL`, `E2E_PASSWORD`) |
+| `npm run e2e` / `e2e:all` | Playwright on iPhone / on iPhone + Pixel + Desktop (production build, guarded) |
+| `npm run e2e:warm` + `e2e:spec -- e2e/x.spec.mjs` | iterate on specs against a warm dev server (`e2e:warm:stop` after) |
 | `npx drizzle-kit migrate` | apply migrations to the database in `.env.local` |
 | `node scripts/reset-and-seed.mjs` | **wipes** and reseeds the target database (dev only) |
 

@@ -10,7 +10,7 @@ members, exportable as a styled HTML status report.
 | Production | Vercel Production (`main`) | `main` (`ep-morning-silence-aufzhvx1`) | only deployment allowed to touch it |
 | Preview | Vercel Preview (PR branches) | `dev` (`ep-dark-hill-au3dsavk`) | Preview-scoped `DATABASE_URL` (Secret); Neon integration connected to Production only |
 | Local | `npm run dev` | `dev` (`ep-dark-hill-au3dsavk`) | `.env.local` |
-| E2e | Playwright *(planned)* | `e2e` (`ep-dark-glade-aufmp4w7`) | `.env.test.local` |
+| E2e | Playwright | `e2e` (`ep-dark-glade-aufmp4w7`) | `.env.test.local` |
 
 The Neon project was provisioned through Vercel's Neon integration (Vercel-managed org); open it via
 Vercel → Storage → Open in Neon Console.
@@ -58,4 +58,10 @@ author). Deleting a project cascades to members, sections, tasks and notes.
 
 - Unit: `npm test` (Jest via `next/jest`, node environment). GitHub Actions `unit` job on every PR and
   push to `main` (`.github/workflows/ci.yml`).
-- E2e: planned (Playwright, guarded runner) once the `e2e` branch exists.
+- E2e: Playwright (`e2e/`, `playwright.config.mjs`) on iPhone (WebKit), Pixel and Desktop Chrome against
+  the `e2e` Neon branch. `e2e/env.mjs` loads `.env.test.local` and refuses any `DATABASE_URL` that
+  `dbTargetOf` does not resolve to `e2e`. The app runs on port 4046 into `.next-e2e` (production build for
+  the gate, `next dev` for the warm server), signed in once by `e2e/auth.setup.mjs`; specs create their
+  own projects through the API and delete them afterwards. `scripts/e2e-run.mjs` wraps every run: guard
+  (one run machine-wide, enough free memory) → run → kill leftovers → one line in `docs/testing/e2e-runs.jsonl`.
+  Not in CI yet (runs locally).

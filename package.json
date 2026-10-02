@@ -7,7 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "jest"
+    "test": "jest",
+    "e2e:user": "node scripts/create-e2e-user.mjs",
+    "e2e": "node scripts/e2e-run.mjs --project=iphone",
+    "e2e:all": "node scripts/e2e-run.mjs",
+    "e2e:warm": "node scripts/e2e-warm.mjs start",
+    "e2e:warm:stop": "node scripts/e2e-warm.mjs stop",
+    "e2e:spec": "E2E_DEV=1 node scripts/e2e-run.mjs --project=iphone",
+    "e2e:cleanup": "node scripts/e2e-guard.mjs post",
+    "e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
@@ -22,6 +30,8 @@
     "resend": "^6.26.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/jest": "^30.0.0",

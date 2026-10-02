@@ -34,7 +34,7 @@
 
 ## Testing
 - [ ] Unit tests for API routes (done: signup, membership check; todo: project/task CRUD)
-- [ ] E2E tests (sign up → create project → invite → edit → export)
+- [ ] E2E specs beyond smoke (sign up → invite → export); smoke + axe exist since 2026-10-02
 - [ ] Load testing for heartbeat endpoint at scale
 
 ## Infrastructure

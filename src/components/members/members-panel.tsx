@@ -207,6 +207,7 @@ function ProjectInviteLink({ projectId }: { projectId: string }) {
       <div className="flex gap-2">
         <input
           readOnly
+          aria-label="Project link"
           value={link}
           className="h-9 flex-1 min-w-0 rounded border border-line bg-paper-2 px-2 font-mono text-[10px] text-muted outline-none"
         />
