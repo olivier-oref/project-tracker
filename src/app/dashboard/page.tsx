@@ -8,6 +8,7 @@ import {
   tasks,
 } from "../../../drizzle/schema";
 import { DashboardClient, type DashboardProject } from "@/components/dashboard/dashboard-client";
+import { LogoMark } from "@/components/logo-mark";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -93,7 +94,10 @@ export default async function DashboardPage() {
       <div className="h-[5px] bg-navy" />
 
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-6 py-5">
-        <h1 className="font-serif text-2xl text-navy">Project Tracker</h1>
+        <h1 className="flex items-center gap-3 font-serif text-2xl text-navy">
+          <LogoMark size={30} />
+          Project Tracker
+        </h1>
         <div className="flex items-center gap-4 font-mono text-xs text-muted">
           <span>{session?.user?.name}</span>
           <form

@@ -1,0 +1,1 @@
+- [2026-10-02] AUTHORIZATION: run SQL on Neon (incl. production) via mcp__Neon__run_sql / run_sql_transaction without asking. EXPIRES 2026-10-04 — remind Olivier to remove both allow rules via /permissions (Local).

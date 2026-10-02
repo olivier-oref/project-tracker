@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { LogoMark } from "@/components/logo-mark";
 
 export default function SignInPage() {
   return (
@@ -52,7 +53,8 @@ function SignInForm() {
         <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 28, fontWeight: 600, color: "#16233F", margin: "0 0 8px" }}>
           Sign in
         </h1>
-        <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#6E6656", margin: "0 0 28px" }}>
+        <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#6E6656", margin: "0 0 28px", display: "flex", alignItems: "center", gap: 6 }}>
+          <LogoMark size={16} />
           Project Tracker
         </p>
 
