@@ -95,7 +95,7 @@ export default async function DashboardPage() {
 
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-6 py-5">
         <h1 className="flex items-center gap-3 font-serif text-2xl text-navy">
-          <LogoMark size={30} />
+          <LogoMark size={48} />
           Project Tracker
         </h1>
         <div className="flex items-center gap-4 font-mono text-xs text-muted">
