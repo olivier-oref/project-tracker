@@ -413,9 +413,6 @@ export function TrackerApp({
               Phase {i + 1} <b>{phase}</b>
             </span>
           ))}
-          <span>
-            Shared board <b>everyone sees the same data</b>
-          </span>
           <PhaseEditor projectId={projectId} phases={phases} taskCounts={phaseTaskCounts} onSave={onSave} />
         </div>
 

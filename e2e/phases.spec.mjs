@@ -36,7 +36,7 @@ test.describe('phases', () => {
     }
     await page.screenshot({ path: testInfo.outputPath('editor.png') });
     await savePhases(page);
-    await expect(heading(page)).toHaveText(['SF', 'Monaco', 'everyone sees the same data']);
+    await expect(heading(page)).toHaveText(['SF', 'Monaco']);
 
     const task = page.locator('.task').first();
     const saved = page.waitForResponse((r) => r.url().includes('/tasks/') && r.request().method() === 'PATCH');
@@ -61,7 +61,7 @@ test.describe('phases', () => {
     await savePhases(page);
 
     await page.reload();
-    await expect(heading(page)).toHaveText(['Monaco', 'San Francisco', 'everyone sees the same data']);
+    await expect(heading(page)).toHaveText(['Monaco', 'San Francisco']);
     await expect(page.locator('.task').first().getByLabel('Phase')).toHaveValue('San Francisco');
   });
 
@@ -83,7 +83,7 @@ test.describe('phases', () => {
     dialogs.answer = 'accept';
     await savePhases(page);
     await page.reload();
-    await expect(heading(page)).toHaveText(['Monaco', 'everyone sees the same data']);
+    await expect(heading(page)).toHaveText(['Monaco']);
     // A task whose phase isn't listed would also show "No phase": re-add SF to prove the task was cleared.
     await putPhases(request, project, { phases: ['Monaco', 'SF'] });
     await page.reload();
@@ -146,14 +146,14 @@ test.describe('phases', () => {
     // Someone else adds Monaco; this board refreshes in the background (as on tab focus or the poll).
     await putPhases(request, project, { phases: ['SF', 'Monaco'] });
     await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
-    await expect(heading(page)).toHaveText(['SF', 'Monaco', 'everyone sees the same data']);
+    await expect(heading(page)).toHaveText(['SF', 'Monaco']);
 
     await page.getByLabel('Phase 1 name').fill('Bay Area');
     await page.getByRole('button', { name: 'Save phases' }).click();
     await expect(page.getByRole('alert').filter({ hasText: 'changed by someone else' })).toBeVisible();
     await expect(page.getByLabel('Phase 1 name')).toHaveValue('Bay Area');
     await page.reload();
-    await expect(heading(page)).toHaveText(['SF', 'Monaco', 'everyone sees the same data']);
+    await expect(heading(page)).toHaveText(['SF', 'Monaco']);
   });
 
   test("tasks only take the project's phases", async ({ request }, testInfo) => {
