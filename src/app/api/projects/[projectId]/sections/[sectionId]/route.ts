@@ -11,8 +11,7 @@ export async function PATCH(
   const { projectId, sectionId } = await params;
   const auth = await verifyProjectMembership(projectId);
   if ("error" in auth) {
-    touchProject(projectId);
-  return NextResponse.json({ error: auth.error }, { status: auth.status });
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   const [existing] = await db
@@ -21,8 +20,7 @@ export async function PATCH(
     .where(and(eq(sections.id, sectionId), eq(sections.projectId, projectId)));
 
   if (!existing) {
-    touchProject(projectId);
-  return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   const body = await request.json();
@@ -30,23 +28,21 @@ export async function PATCH(
   if (body.title !== undefined) {
     const title = typeof body.title === "string" ? body.title.trim() : "";
     if (!title) {
-      touchProject(projectId);
-  return NextResponse.json({ error: "Title is required" }, { status: 400 });
+      return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
     const [section] = await db
       .update(sections)
       .set({ title })
       .where(eq(sections.id, sectionId))
       .returning();
-    touchProject(projectId);
+    await touchProject(projectId);
   return NextResponse.json(section);
   }
 
   if (body.sortOrder !== undefined) {
     const sortOrder = Number(body.sortOrder);
     if (!Number.isInteger(sortOrder)) {
-      touchProject(projectId);
-  return NextResponse.json({ error: "Invalid sortOrder" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid sortOrder" }, { status: 400 });
     }
 
     const result = await db.transaction(async (tx) => {
@@ -78,11 +74,11 @@ export async function PATCH(
       return updated;
     });
 
-    touchProject(projectId);
+    await touchProject(projectId);
   return NextResponse.json(result);
   }
 
-  touchProject(projectId);
+  await touchProject(projectId);
   return NextResponse.json(existing);
 }
 
@@ -93,14 +89,13 @@ export async function DELETE(
   const { projectId, sectionId } = await params;
   const auth = await verifyProjectMembership(projectId);
   if ("error" in auth) {
-    touchProject(projectId);
-  return NextResponse.json({ error: auth.error }, { status: auth.status });
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   await db
     .delete(sections)
     .where(and(eq(sections.id, sectionId), eq(sections.projectId, projectId)));
 
-  touchProject(projectId);
+  await touchProject(projectId);
   return NextResponse.json({ success: true });
 }

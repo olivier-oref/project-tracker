@@ -56,6 +56,14 @@ NextAuth v5 (JWT sessions) · Resend (invite email) · Tailwind 4 · Jest (unit)
 `sections` (project) · `tasks` (section, owner, status, due date, phase, sort order) · `notes` (task,
 author). Deleting a project cascades to members, sections, tasks and notes.
 
+Task owner is either `owner_id` (a member) or `owner_name` (anyone, by name — they may not have access),
+never both. `PATCH /tasks/:id` takes `{ owner: "<typed name>" }` and `resolveOwner` (`src/lib/owners.ts`)
+links a member whose name matches (case-insensitive) or keeps the name as typed (ADR-003).
+
+Migrations: production was created with `drizzle-kit push`, so it has no migrations journal and
+`drizzle-kit migrate` would try to re-create every table. Migrations from `0001` on are idempotent SQL
+applied per branch (e2e → dev → snapshot → production) with the Neon SQL tools.
+
 ## Testing and CI
 
 - Unit: `npm test` (Jest via `next/jest`, node environment). GitHub Actions `unit` job on every PR and

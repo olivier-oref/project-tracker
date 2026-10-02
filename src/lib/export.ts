@@ -179,7 +179,9 @@ export async function generateProjectHTML(projectId: string): Promise<string> {
             : null;
           const ownerHtml = owner
             ? `<span class="ow" style="color:${owner.color};background:${owner.color}24;border-color:${owner.color}">${escapeHtml(owner.name)}</span>`
-            : `<span class="none">Unassigned</span>`;
+            : task.ownerName
+              ? `<span class="ow" style="border-color:var(--line-2)">${escapeHtml(task.ownerName)}</span>`
+              : `<span class="none">Unassigned</span>`;
 
           const taskNotes = notesByTask.get(task.id) ?? [];
           const notesHtml = taskNotes

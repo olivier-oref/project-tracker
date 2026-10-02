@@ -55,6 +55,11 @@ export function handleDialogs(page, answer = 'dismiss') {
 /** Collects uncaught page exceptions (crash detection); assert the array is empty at the end. */
 export function collectPageErrors(page) {
   const errors = [];
-  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('pageerror', (e) => {
+    // Dev server only: WebKit blocks Next's error-overlay stack-frame fetch when a reload cancels a
+    // background refresh. Not an app error; production builds (the merge gate) never emit it.
+    if (e.message.includes('__nextjs_original-stack-frames')) return;
+    errors.push(e.message);
+  });
   return errors;
 }

@@ -33,3 +33,18 @@ build step.
 Vercel Neon integration also injects `POSTGRES_URL`, and preferring it would have kept previews on
 production. The integration is now connected to Production only; previews get a manual
 Secret `DATABASE_URL` pointing at `dev`.
+
+## ADR-003 — Task owners can be anyone, not only members (2026-10-02)
+
+**Context.** Owners were a foreign key to `users`; typing a name that wasn't a member silently cleared
+the owner. Tasks are often owned by people who will never open the tracker (vendors, other teams).
+
+**Decision.** `tasks.owner_name` (free text) next to `owner_id`; exactly one is set. The server resolves
+what was typed: a member's name (case-insensitive, " (pending)" ignored) links the member, anything else
+is stored as typed (trimmed, ≤ 80 chars). The owner field suggests members, then names already used in
+the project; views, filter and export group outsiders by name.
+
+**Rejected.** Creating placeholder users for outsiders (pollutes auth and invites); members-only owners
+(loses what people type).
+
+**Trade-off.** If an outsider later joins, their old tasks stay on the name until reassigned.

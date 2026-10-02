@@ -71,6 +71,8 @@ export const tasks = pgTable(
     title: text("title").notNull(),
     status: text("status").notNull().default("not_started"),
     ownerId: uuid("owner_id").references(() => users.id),
+    // Owner who isn't a member (anyone, by name). Never set together with owner_id.
+    ownerName: text("owner_name"),
     dueDate: date("due_date"),
     phase: text("phase"),
     sortOrder: integer("sort_order").notNull(),

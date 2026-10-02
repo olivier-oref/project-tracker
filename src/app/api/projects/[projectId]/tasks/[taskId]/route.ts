@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { eq, and, max } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { verifyProjectMembership, touchProject } from "@/lib/project-auth";
+import { verifyProjectMembership, touchProject, projectMemberNames } from "@/lib/project-auth";
+import { resolveOwner } from "@/lib/owners";
 import { sections, tasks } from "../../../../../../../drizzle/schema";
 
 async function getTaskInProject(projectId: string, taskId: string) {
@@ -21,14 +22,12 @@ export async function PATCH(
   const { projectId, taskId } = await params;
   const auth = await verifyProjectMembership(projectId);
   if ("error" in auth) {
-    touchProject(projectId);
-  return NextResponse.json({ error: auth.error }, { status: auth.status });
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   const row = await getTaskInProject(projectId, taskId);
   if (!row) {
-    touchProject(projectId);
-  return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   const body = await request.json();
@@ -37,22 +36,33 @@ export async function PATCH(
   if (body.title !== undefined) {
     const title = typeof body.title === "string" ? body.title.trim() : "";
     if (!title) {
-      touchProject(projectId);
-  return NextResponse.json({ error: "Title is required" }, { status: 400 });
+      return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
     updates.title = title;
   }
 
   if (body.status !== undefined) {
     if (typeof body.status !== "string" || !body.status.trim()) {
-      touchProject(projectId);
-  return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
     updates.status = body.status;
   }
 
-  if (body.ownerId !== undefined) {
-    updates.ownerId = typeof body.ownerId === "string" ? body.ownerId : null;
+  if (body.owner !== undefined) {
+    if (body.owner !== null && typeof body.owner !== "string") {
+      return NextResponse.json({ error: "Invalid owner" }, { status: 400 });
+    }
+    // What the user typed: a member's name links the member, any other name is kept as typed.
+    const owner = resolveOwner(body.owner, await projectMemberNames(projectId));
+    updates.ownerId = owner.ownerId;
+    updates.ownerName = owner.ownerName;
+  } else if (body.ownerId !== undefined) {
+    const ownerId = typeof body.ownerId === "string" ? body.ownerId : null;
+    if (ownerId && !(await projectMemberNames(projectId)).some((m) => m.id === ownerId)) {
+      return NextResponse.json({ error: "Owner is not a project member" }, { status: 400 });
+    }
+    updates.ownerId = ownerId;
+    updates.ownerName = null;
   }
 
   if (body.dueDate !== undefined) {
@@ -71,8 +81,7 @@ export async function PATCH(
       .where(and(eq(sections.id, newSectionId), eq(sections.projectId, projectId)));
 
     if (!newSection) {
-      touchProject(projectId);
-  return NextResponse.json({ error: "Section not found" }, { status: 404 });
+      return NextResponse.json({ error: "Section not found" }, { status: 404 });
     }
 
     const [{ value }] = await db
@@ -85,8 +94,7 @@ export async function PATCH(
   } else if (body.sortOrder !== undefined) {
     const sortOrder = Number(body.sortOrder);
     if (!Number.isInteger(sortOrder)) {
-      touchProject(projectId);
-  return NextResponse.json({ error: "Invalid sortOrder" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid sortOrder" }, { status: 400 });
     }
     updates.sortOrder = sortOrder;
   }
@@ -97,7 +105,7 @@ export async function PATCH(
     .where(eq(tasks.id, taskId))
     .returning();
 
-  touchProject(projectId);
+  await touchProject(projectId);
   return NextResponse.json(task);
 }
 
@@ -108,18 +116,16 @@ export async function DELETE(
   const { projectId, taskId } = await params;
   const auth = await verifyProjectMembership(projectId);
   if ("error" in auth) {
-    touchProject(projectId);
-  return NextResponse.json({ error: auth.error }, { status: auth.status });
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   const row = await getTaskInProject(projectId, taskId);
   if (!row) {
-    touchProject(projectId);
-  return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   await db.delete(tasks).where(eq(tasks.id, taskId));
 
-  touchProject(projectId);
+  await touchProject(projectId);
   return NextResponse.json({ success: true });
 }

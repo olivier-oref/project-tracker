@@ -150,6 +150,7 @@ export default async function ProjectPage({
     dueDate: task.dueDate,
     phase: task.phase,
     ownerId: task.ownerId,
+    ownerName: task.ownerName,
     sectionId: task.sectionId,
   }));
 

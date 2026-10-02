@@ -26,8 +26,7 @@ export async function PATCH(
   const { projectId, noteId } = await params;
   const result = await verifyNoteAccess(projectId, noteId);
   if ("error" in result) {
-    touchProject(projectId);
-  return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
   const body = await request.json();
@@ -37,8 +36,7 @@ export async function PATCH(
   if ("authorName" in body) updates.authorName = body.authorName;
 
   if (Object.keys(updates).length === 0) {
-    touchProject(projectId);
-  return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+    return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
 
   const [updated] = await db
@@ -47,7 +45,7 @@ export async function PATCH(
     .where(eq(notes.id, noteId))
     .returning();
 
-  touchProject(projectId);
+  await touchProject(projectId);
   return NextResponse.json(updated);
 }
 
@@ -58,11 +56,10 @@ export async function DELETE(
   const { projectId, noteId } = await params;
   const result = await verifyNoteAccess(projectId, noteId);
   if ("error" in result) {
-    touchProject(projectId);
-  return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
   await db.delete(notes).where(eq(notes.id, noteId));
-  touchProject(projectId);
+  await touchProject(projectId);
   return NextResponse.json({ success: true });
 }
